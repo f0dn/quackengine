@@ -1,3 +1,5 @@
+import numpy as np
+
 class Board:
     board = [[None for _ in range(8)] for _ in range(8)]
     turn = "w"
@@ -59,5 +61,25 @@ class Board:
         self.fen = fen
         return fen
 
-    def get_possible_moves():
-        pass
+    def get_possible_moves(self):
+        """
+        Returns a list of possible moves on the board 
+        with a move being encoded in long_algebraic form 'e1e4'
+        """
+        chess_board = self.board
+
+        black_moves = []
+        white_moves = []
+
+        for rank in range(8, 0, -1):
+            for file in range(1, 9, 1):
+                # record all possible pawn moves
+                if chess_board[rank-1][file-1] == 'p' and rank/2:
+                    # check if there is an enemy piece ahead
+                    pass
+                # Convert file index to a char
+                print(chr(file + 96), rank)
+            print("")
+
+
+        return chess_board

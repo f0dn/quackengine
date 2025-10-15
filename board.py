@@ -68,18 +68,32 @@ class Board:
         """
         chess_board = self.board
 
-        black_moves = []
-        white_moves = []
+        # Reverse the chess board
+        chess_board.reverse()
+        possible_moves = []
 
-        for rank in range(8, 0, -1):
-            for file in range(1, 9, 1):
-                # record all possible pawn moves
-                if chess_board[rank-1][file-1] == 'p' and rank/2:
-                    # check if there is an enemy piece ahead
+        for i in range(8):
+            for j in range(8):
+                if self.turn == 'w':
+                    # record all possible bishop moves
+                    if chess_board[i][j] == 'B':
+                        # keep track of starting position
+                        position = (i, j)
+                        
+                        directions = [(-1, -1), (-1,1), (1,1), (1,-1)]
+                        for direction in directions:
+                            new_point = (position[0] + direction[0], position[1] + direction[1])                      
+                            while 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:                             
+                                # Check if an opponent or teammate is on the diagonal path
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                    break
+                                
+                                elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    break
+
+                                possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                new_point = (new_point[0] + direction[0], new_point[1] + direction[1])
+                else:
                     pass
-                # Convert file index to a char
-                print(chr(file + 96), rank)
-            print("")
-
-
-        return chess_board
+        return possible_moves

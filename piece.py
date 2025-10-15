@@ -1,9 +1,13 @@
 from enum import Enum
 
-# class syntax
 class Color(Enum):
-    pawn = 1
-    knight =3
-    bishop = 3
-    rook = 5
-    queen = 9
+    WHITE = 0
+    BLACK = 1
+
+class Piece(Enum):
+    PAWN = 'P'
+    KNIGHT = 'N'
+    BISHOP = 'B'
+    ROOK = 'R'
+    QUEEN = 'Q'
+    KING = 'K'

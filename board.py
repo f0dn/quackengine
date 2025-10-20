@@ -72,14 +72,20 @@ class Board:
         chess_board.reverse()
         possible_moves = []
 
+        pathways = {'N': [(-2, -1), (-2, 1), (-1,-2), (-1,2), (1,2), (1,-2), (2,-1), (2,1)],
+                      'B': [(-1, -1), (-1,1), (1,1), (1,-1)],
+                      'R': [(-1, 0), (1,0), (0,1), (0,-1)],
+                      'Q': [(-1, -1), (-1,1), (1,1), (1,-1), (-1, 0), (1,0), (0,1), (0,-1)],
+                      'K': [(-1, -1), (-1,1), (1,1), (1,-1), (-1, 0), (1,0), (0,1), (0,-1)]}
+    
         for i in range(8):
             for j in range(8):
-                # record all possible bishop moves
-                if chess_board[i][j] == 'B' or chess_board[i][j] == 'b':
-                    # keep track of starting position
-                    position = (i, j)
+                # keep track of starting position
+                position = (i, j)
 
-                    directions = [(-1, -1), (-1,1), (1,1), (1,-1)]
+                # record all possible bishop moves
+                if chess_board[i][j] == ('B' if self.turn == 'w' else 'b'):
+                    directions = pathways['B']
                     for direction in directions:
                         new_point = (position[0] + direction[0], position[1] + direction[1])                      
                         while 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:   
@@ -99,7 +105,91 @@ class Board:
                                     
                                 elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
                                     break
-
                             possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
                             new_point = (new_point[0] + direction[0], new_point[1] + direction[1])
+
+                # record all possible knight moves
+                elif chess_board[i][j] == ('N' if self.turn == 'w' else 'n'):
+                    directions = pathways['N']
+
+                    for direction in directions:
+                        new_point = (position[0] + direction[0], position[1] + direction[1])  
+                        if 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:
+                            # Ensure that move is not friendly fire
+                            if self.turn == 'w':
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    continue
+                                possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                            else:
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    continue
+                                possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+
+                # record all possible rook moves
+                elif chess_board[i][j] == ('R' if self.turn == 'w' else 'r'):
+                    directions = pathways['R']
+                    for direction in directions:
+                        new_point = (position[0] + direction[0], position[1] + direction[1])                      
+                        while 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:   
+                            if self.turn == 'w':                        
+                                # Check if an opponent or teammate is on the path                        
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                    break
+                                    
+                                elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    break
+                            else:
+                                # Check if an opponent or teammate is on the path                        
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                    break
+                                    
+                                elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    break
+                            possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                            new_point = (new_point[0] + direction[0], new_point[1] + direction[1])
+
+                # record all possible queen moves
+                elif chess_board[i][j] == ('Q' if self.turn == 'w' else 'q'):
+                    directions = pathways['Q']
+                    for direction in directions:
+                        new_point = (position[0] + direction[0], position[1] + direction[1])                      
+                        while 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:   
+                            if self.turn == 'w':                        
+                                # Check if an opponent or teammate is on the path                        
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                    break
+                                    
+                                elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    break
+                            else:
+                                # Check if an opponent or teammate is on the path                        
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                    break
+                                    
+                                elif chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    break
+                            possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                            new_point = (new_point[0] + direction[0], new_point[1] + direction[1])
+                # record all possible king moves
+                elif chess_board[i][j] == ('K' if self.turn == 'w' else 'k'):
+                    directions = pathways['K']
+                    for direction in directions:
+                        new_point = (position[0] + direction[0], position[1] + direction[1])  
+                        if 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:
+                            # Ensure that move is not friendly fire
+                            if self.turn == 'w':
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                    continue
+                                possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                            else:
+                                if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                    continue
+                                possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                # record all possible pawn moves
+                elif chess_board[i][j] == ('P' if self.turn == 'w' else 'p'):
+                    pass
         return possible_moves

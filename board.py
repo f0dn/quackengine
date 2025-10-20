@@ -84,3 +84,42 @@ class Board:
 
     def get_possible_moves():
         pass
+
+    def make_moves(self, moves):
+        col_num = {
+            "a" : 0,
+            "b" : 1,
+            "c" : 2,
+            "d" : 3,
+            "e" : 4,
+            "f" : 5,
+            "g" : 6,
+            "h" : 7
+        }
+
+        for move in moves:
+            from_square = move[:2]
+            from_x = col_num.get(from_square[0])
+            from_y = int(from_square[1])
+            to_square = move[2:]
+            to_x = col_num.get(to_square[0])
+            to_y = int(to_square[1])
+
+            if move[-1].isalpha(): # promotion move
+                color = (self.board[from_x][from_y])[1]
+
+                self.board[from_x][from_y] = None
+                self.board[to_x][to_y] = (Piece(to_square[2].toupper()), color)
+            else:
+                moving_piece = self.board[from_x][from_y]
+
+                self.board[from_x][from_y] = None
+                self.board[to_x][to_y] = moving_piece
+
+                if moving_piece[0] == Piece.KING and abs(from_x - to_x) == 2: # castling move
+                    if (from_x - to_x < 0): # castling short side
+                        self.board[7][from_y] = None
+                        self.board[to_x - 1][to_y] = (Piece.ROOK, moving_piece[1])
+                    else: # castling long side
+                        self.board[0][from_y] = None
+                        self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])

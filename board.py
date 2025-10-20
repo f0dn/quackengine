@@ -76,7 +76,9 @@ class Board:
                       'B': [(-1, -1), (-1,1), (1,1), (1,-1)],
                       'R': [(-1, 0), (1,0), (0,1), (0,-1)],
                       'Q': [(-1, -1), (-1,1), (1,1), (1,-1), (-1, 0), (1,0), (0,1), (0,-1)],
-                      'K': [(-1, -1), (-1,1), (1,1), (1,-1), (-1, 0), (1,0), (0,1), (0,-1)]}
+                      'K': [(-1, -1), (-1,1), (1,1), (1,-1), (-1, 0), (1,0), (0,1), (0,-1)],
+                      'P': [(1, -1), (1, 1), (1, 0) if self.turn == 'w' else (-1, 0)]}
+    
     
         for i in range(8):
             for j in range(8):
@@ -191,10 +193,7 @@ class Board:
                                 possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
                 # record all possible pawn moves
                 elif chess_board[i][j] == ('P' if self.turn == 'w' else 'p'):
-                    directions = [(1, -1), (1, 1), (1, 0) if self.turn == 'w' else (-1, 0)]
-
-                    if i == (1 if self.turn == 'w' else 6):
-                        directions.append((2 if self.turn == 'w' else -2, 0))
+                    directions = pathways['P']
 
                     for direction in directions:
                         new_point = (position[0] + direction[0], position[1] + direction[1])  
@@ -208,6 +207,11 @@ class Board:
                                     if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
                                         possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
                             else:
-                                if chess_board[new_point[0]][new_point[1]] == None:
+                                while chess_board[new_point[0]][new_point[1]] == None:
                                     possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
-        return possible_moves
+                                    # Check for initial 2-square move
+                                    if (self.turn == 'w' and i == 1) or (self.turn == 'b' and i == 6):
+                                        new_point = (new_point[0] + direction[0], new_point[1] + direction[1])
+                                    else:
+                                        break
+        return sorted(set(possible_moves))

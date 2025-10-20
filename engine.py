@@ -1,5 +1,4 @@
-import threading
-class engine: 
+class Engine: 
     def __init__(self):
         pass
 
@@ -62,6 +61,6 @@ class engine:
     def format_info(self, list_of_tuples):
         full_info_str = "info "
         for type, value in list_of_tuples:
-            full_into_str += f"{type} {value}"
+            full_info_str += f"{type} {value}"
         print(full_info_str)
 

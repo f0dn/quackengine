@@ -61,6 +61,6 @@ class Engine:
     def format_info(self, list_of_tuples):
         full_info_str = "info "
         for type, value in list_of_tuples:
-            full_info_str += f"{type} {value}"
+            full_info_str += f"{type} {value} "
         print(full_info_str)
 

@@ -191,5 +191,23 @@ class Board:
                                 possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
                 # record all possible pawn moves
                 elif chess_board[i][j] == ('P' if self.turn == 'w' else 'p'):
-                    pass
+                    directions = [(1, -1), (1, 1), (1, 0) if self.turn == 'w' else (-1, 0)]
+
+                    if i == (1 if self.turn == 'w' else 6):
+                        directions.append((2 if self.turn == 'w' else -2, 0))
+
+                    for direction in directions:
+                        new_point = (position[0] + direction[0], position[1] + direction[1])  
+                        if 0 <= new_point[0] <= 7 and 0 <= new_point[1] <= 7:
+                            # Ensure that move is not friendly fire
+                            if direction == (1, -1) or direction == (1, 1):
+                                if self.turn == 'w':
+                                    if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].islower():
+                                        possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                                else:
+                                    if chess_board[new_point[0]][new_point[1]] != None and chess_board[new_point[0]][new_point[1]].isupper():
+                                        possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
+                            else:
+                                if chess_board[new_point[0]][new_point[1]] == None:
+                                    possible_moves.append(f"{chr(1+j+96)}{i+1}{chr(new_point[1]+1+96)}{new_point[0]+1}")
         return possible_moves

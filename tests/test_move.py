@@ -1,4 +1,4 @@
-import pytest
+
 from move import Move
 
 def test_pawn_move():

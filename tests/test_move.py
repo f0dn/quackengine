@@ -1,5 +1,5 @@
 import pytest
-from src.move import Move
+from move import Move
 
 def test_pawn_move():
     move = Move("pe2e4")

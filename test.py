@@ -25,3 +25,4 @@ game_board = Board(fen=None)
 # initialize the chess board
 game_board.board = chess_board
 print(game_board.get_possible_moves())
+print(len(game_board.get_possible_moves()))

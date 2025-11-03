@@ -106,7 +106,7 @@ class Board:
                 color = (self.board[from_x][from_y])[1]
 
                 self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = (Piece(move.promoted_to.toupper()), color)
+                self.board[to_x][to_y] = (move.promoted_to, color)
             else:
                 moving_piece = self.board[from_x][from_y]
 

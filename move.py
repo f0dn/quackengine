@@ -1,24 +1,12 @@
+from piece import Piece
+
 class Move:
     def __init__(self, move: str):
-        self.is_capture = 'x' in move
         self.promoted_to = None
-        self.chess_piece = 'P'
-
-        move = move.replace('-', '')
-
-        if move.startswith('p'):
-            move = move[1:]
-            self.chess_piece = 'P'
 
         if len(move) > 4 and move[-1].isalpha() and move[-1].islower():
-            self.promoted_to = move[-1]
+            self.promoted_to = Piece(move[-1].upper())
             move = move[:-1]
-
-        move = move.replace('x', '')
-
-        if move and move[0].isupper() and move[0] in "KQRBN":
-            self.chess_piece = move[0]
-            move = move[1:]
 
         #(file, rank)
         self.src_coords = (ord(move[0]) - ord('a'), int(move[1]) - 1)
@@ -29,5 +17,5 @@ class Move:
         target = chr(self.target_coords[0] + ord('a')) + str(self.target_coords[1] + 1)
         result = src + target
         if self.promoted_to:
-            result += self.promoted_to
+            result += self.promoted_to.value.lower()
         return result

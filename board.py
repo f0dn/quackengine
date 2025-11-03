@@ -86,7 +86,7 @@ class Board:
     def get_possible_moves():
         pass
 
-    def make_moves(self, moves: List[move]):
+    def make_moves(self, moves: list[Move]):
         col_num = {
             "a" : 0,
             "b" : 1,
@@ -99,23 +99,19 @@ class Board:
         }
 
         for move in moves:
-            from_square = move[:2]
-            from_x = col_num.get(from_square[0])
-            from_y = int(from_square[1])
-            to_square = move[2:]
-            to_x = col_num.get(to_square[0])
-            to_y = int(to_square[1])
+            from_x, from_y = move.src_coords
+            to_x, to_y = move.target_coords
 
-            if move[-1].isalpha(): # promotion move
+            if move.promoted_to: # promotion move
                 color = (self.board[from_x][from_y])[1]
 
                 self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = (Piece(to_square[2].toupper()), color)
+                self.board[to_x][to_y] = (Piece(move.promoted_to.toupper()), color)
             else:
                 moving_piece = self.board[from_x][from_y]
 
                 self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = moving_piece
+                self.board[to_x][to_y] = move.chess_piece
 
                 if moving_piece[0] == Piece.KING and abs(from_x - to_x) == 2: # castling move
                     if (from_x - to_x < 0): # castling short side

@@ -1,6 +1,6 @@
 class Engine: 
     def __init__(self):
-        self.options_list = []
+        self.options_dict = {}
 
     def start(self):
         while True:
@@ -63,7 +63,7 @@ class Engine:
         print(full_info_str)
     
     def add_options(self, option_name, type, value):
-        self.options_list.append({"name": option_name, "type": type, "value": value}) #value would be a dict of default, min, max etc
+        self.options_dict[option_name] = {"type": type, "value": value} #value would be a dict of default, min, max etc
         parts = []
         for k, v in value.items():
             if isinstance(v, list):

@@ -87,17 +87,6 @@ class Board:
         pass
 
     def make_moves(self, moves: list[Move]):
-        col_num = {
-            "a" : 0,
-            "b" : 1,
-            "c" : 2,
-            "d" : 3,
-            "e" : 4,
-            "f" : 5,
-            "g" : 6,
-            "h" : 7
-        }
-
         for move in moves:
             from_x, from_y = move.src_coords
             to_x, to_y = move.target_coords

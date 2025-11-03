@@ -1,11 +1,11 @@
-from piece import Color, Piece
+from piece import Piece
 
 class Move:
     def __init__(self, move: str):
         self.promoted_to = None
 
         if len(move) > 4 and move[-1].isalpha() and move[-1].islower():
-            self.promoted_to = Piece(move[-1].toupper())
+            self.promoted_to = Piece(move[-1].upper())
             move = move[:-1]
 
         #(file, rank)
@@ -17,5 +17,5 @@ class Move:
         target = chr(self.target_coords[0] + ord('a')) + str(self.target_coords[1] + 1)
         result = src + target
         if self.promoted_to:
-            result += self.promoted_to.value.tolower()
+            result += self.promoted_to.value.lower()
         return result

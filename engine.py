@@ -1,6 +1,11 @@
 class Engine: 
     def __init__(self):
         self.options_dict = {}
+        
+        file = open('openings/2moves_v1.epd.txt')
+        self.openings = set()
+        for position in file:
+            self.openings.add(position)
 
     def start(self):
         while True:
@@ -74,4 +79,7 @@ class Engine:
         formatted_value = " ".join(parts)
         print(f"option name {option_name} type {type} {formatted_value}")
 
-
+    def is_known_opening(self, fen_position):
+        if fen_position in self.openings:
+            return True
+        return False

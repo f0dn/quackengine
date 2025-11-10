@@ -1,9 +1,6 @@
 from piece import Piece
 
 class Move:
-    from piece import Piece
-
-class Move:
     def __init__(self, from_r, from_c, to_r, to_c, promoted_to=None):
         self.src_coords = (from_r, from_c)
         self.target_coords = (to_r, to_c)

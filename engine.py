@@ -1,11 +1,9 @@
-file = open('openings/2moves_v1.epd.txt')
-openings = set()
-for position in file:
-    openings.add(position)
-
 class Engine: 
     def __init__(self):
-        pass
+        file = open('openings/2moves_v1.epd.txt')
+        self.openings = set()
+        for position in file:
+            self.openings.add(position)
 
     def start():
         pass
@@ -50,7 +48,7 @@ class Engine:
     def calculate_best_move():
         pass
 
-    def isKnownOpening(self, fen_position):
-        if fen_position in openings:
+    def snake_case(self, fen_position):
+        if fen_position in self.openings:
             return True
         return False

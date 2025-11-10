@@ -48,7 +48,7 @@ class Engine:
     def calculate_best_move():
         pass
 
-    def snake_case(self, fen_position):
+    def is_known_opening(self, fen_position):
         if fen_position in self.openings:
             return True
         return False

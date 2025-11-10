@@ -1,3 +1,4 @@
+from piece import Color
 class Engine: 
     def __init__(self):
         self.options_dict = {}
@@ -75,3 +76,52 @@ class Engine:
         print(f"option name {option_name} type {type} {formatted_value}")
 
 
+def evaluate_position(self):
+    whitepieces = []
+    blackpieces = []
+    self.board[0][0]
+    self.white_moves = []
+    self.black_moves = []
+
+    for row in self.board:
+        for piece in row: 
+            if piece[0] == Color.WHITE:
+                whitepieces.append(piece)
+            elif piece[1] == Color.BLACK:
+                blackpieces.append(piece)
+            else:
+                pass
+    total_blackpieces =0
+    total_whitepieces = 0
+    for piece in blackpieces:
+        total_blackpieces += piece.piece_value()
+    for piece in whitepieces:
+        total_whitepieces +=piece.piece_value()
+    difference = total_whitepieces - total_blackpieces
+    return difference
+   # threatsob = []
+    # threatsow = []
+    # if element in self.blackpieces == element in self.white_moves:
+    #     threatsob.append(element)
+    # if element in self.whitepieces == element in self.black_moves:
+    #     threatsow.append(element)
+    # if threatsob == 'P':
+    #     self.black_material_value -=1
+    # if threatsob == 'B':
+    #     self.black_material_value -=3
+    # if threatsob == 'N':
+    #     self.black_material_value -=3
+    # if threatsob == 'R':
+    #     self.black_material_value -=5
+    # if threatsob == 'Q':
+    #     self.black_material_value -=9
+    # if threatsow == 'P':
+    #     self.white_material_value -=1
+    # if threatsow == 'B':
+    #     self.white_material_value -=3
+    # if threatsow == 'N':
+    #     self.white_material_value -=3
+    # if threatsow == 'R':
+    #     self.white_material_value -=5
+    # if threatsow == 'Q':
+    #     self.white_matieral_value -=9

@@ -64,3 +64,23 @@ class Engine:
             full_info_str += f"{type} {value} "
         print(full_info_str)
 
+def evaluate_position():
+    P = 1
+    N = 3
+    B = 3
+    R = 5
+    Q = 9 
+    K = 100000000000000000000000000000000000
+    self.blackpieces = []
+    self.whitepieces = []
+    self.board[0][0]
+    for row in self.board:
+        for piece in row: 
+            if piece == 1:
+                self.blackpieces.append(piece)
+            elif piece == 0:
+                self.whitepieces.append(piece)
+            else:
+                pass
+    
+

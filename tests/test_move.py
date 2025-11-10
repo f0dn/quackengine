@@ -1,21 +1,33 @@
-
 from move import Move
+from piece import Piece
 
 def test_pawn_move():
-    move = Move("pe2e4")
-    assert move.src_square == "e2"
-    assert move.target_square == "e4"
-    assert move.san_notation() == "e2e4"
+    move = Move("e2e4")
+    assert move.src_coords == (4, 1)
+    assert move.target_coords == (4, 3)
+    assert move.to_long_algebraic() == "e2e4"
 
 def test_piece_move():
-    move = Move("Nf3d4")
-    assert move.chess_piece == "N"
-    assert move.src_square == "f3"
-    assert move.target_square == "d4"
-    assert move.san_notation() == "f3d4"
+    move = Move("f3d4")
+    assert move.src_coords == (5, 2)
+    assert move.target_coords == (3, 3)
+    assert move.to_long_algebraic() == "f3d4"
 
 def test_capture_move():
-    move = Move("pe2xd3")
-    assert move.src_square == "e2"
-    assert move.target_square == "d3"
-    assert move.san_notation() == "e2d3"
+    move = Move("e2d3")
+    assert move.src_coords == (4, 1)
+    assert move.target_coords == (3, 2)
+    assert move.to_long_algebraic() == "e2d3"
+
+def test_promotion_move():
+    move = Move("e7e8q")
+    assert move.src_coords == (4, 6)
+    assert move.target_coords == (4, 7)
+    assert move.promoted_to == Piece.QUEEN
+    assert move.to_long_algebraic() == "e7e8q"
+
+def test_piece_capture():
+    move = Move("a1e4")
+    assert move.src_coords == (0, 0)
+    assert move.target_coords == (4, 3)
+    assert move.to_long_algebraic() == "a1e4"

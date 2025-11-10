@@ -27,7 +27,7 @@ def test_promotion_move():
     assert move.to_long_algebraic() == "e7e8q"
 
 def test_piece_capture():
-    move = Move("a1e4")
+    move = Move.from_long_algebraic("a1e4")
     assert move.src_coords == (0, 0)
     assert move.target_coords == (4, 3)
     assert move.to_long_algebraic() == "a1e4"

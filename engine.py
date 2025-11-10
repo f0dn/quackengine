@@ -75,9 +75,9 @@ def evaluate_position(self):
     for row in self.board:
         for piece in row: 
             if piece[0] == Color.WHITE:
-                blackpieces.append(piece)
-            elif piece[0] == Color.BLACK:
                 whitepieces.append(piece)
+            elif piece[1] == Color.BLACK:
+                blackpieces.append(piece)
             else:
                 pass
     total_blackpieces =0

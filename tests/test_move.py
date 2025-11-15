@@ -1,6 +1,6 @@
 from move import Move
 from piece import Piece
-from board import Board, Color
+from board import Board
 
 def test_pawn_move():
     move = Move.from_long_algebraic("e2e4")

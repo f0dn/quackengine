@@ -1,3 +1,6 @@
+from board import Board
+from move import Move
+
 class Engine: 
     def __init__(self):
         self.options_dict = {}
@@ -35,8 +38,16 @@ class Engine:
             #engine should send additional infos to the GUI, off by default, can be sent anytime
             pass
         elif("position" in command):
-            #needs a new thread
-            pass
+            board;
+            if ("startpos" in command):
+                board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            else:
+                start_index = command.find("fen") + 4
+                end_index = command.find("moves") - 1
+                board = Board(command[start_index:end_index])
+            
+            moves = [Move(move) for move in (command.find("moves") + 6).split(' ')]
+            board.make_moves(moves)
         elif("go" in command):
             self.calculate_best_move()
             #needs a new thread

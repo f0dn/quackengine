@@ -114,10 +114,10 @@ class Board:
                 while on_board(nr, nc):
                     target = board[nr][nc]
                     if target is None:
-                        possible_moves.add(Move(r, c, nr, nc))
+                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
                     else:
                         if is_opponent(target, my_color):
-                            possible_moves.add(Move(r, c, nr, nc))
+                            possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
                         break
                     nr += dr
                     nc += dc
@@ -129,7 +129,7 @@ class Board:
                 if on_board(nr, nc):
                     target = board[nr][nc]
                     if not is_friendly(target, my_color):
-                        possible_moves.add(Move(r, c, nr, nc))
+                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
         
         # Direction definitions
         knight_dirs = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, 2), (1, -2), (2, -1), (2, 1)]
@@ -178,17 +178,17 @@ class Board:
                         if on_board(nr, nc):
                             target = board[nr][nc]
                             if is_opponent(target, my_color):
-                                possible_moves.add(Move(r, c, nr, nc))
+                                possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
                     
                     # Pawn forward move (one square)
                     nr = r + forward
                     if on_board(nr, c) and board[nr][c] is None:
-                        possible_moves.add(Move(r, c, nr, c))
+                        possible_moves.add(Move(c, 7 - r, c, 7 - nr))
                         
                         # Pawn double move from starting position
                         nr2 = nr + forward
                         if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
-                            possible_moves.add(Move(r, c, nr2, c))
+                            possible_moves.add(Move(c, 7 - r, c, 7 - nr2))
         return possible_moves
 
     def make_moves(self, moves: list[Move]):

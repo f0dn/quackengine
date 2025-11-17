@@ -3,7 +3,7 @@ from move import Move
 
 class Board:
     board = [[None for _ in range(8)] for _ in range(8)]
-    turn = "w"
+    turn = Color.WHITE
     castling_avail = "KQkq"
     recent_en_passant_target = "-"
     halfmove_clock = 0
@@ -66,7 +66,7 @@ class Board:
 
         # Can be "compressed" to reduce the lines
         # Second Field: active color
-        fen += " " + self.turn
+        fen += " " + self.turn.value
 
         # Third Field: castling availability
         fen += " " + self.castling_avail

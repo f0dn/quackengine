@@ -3,7 +3,7 @@ from move import Move
 
 class Board:
     board = [[None for _ in range(8)] for _ in range(8)]
-    turn = "w"
+    turn = Color.WHITE
     castling_avail = "KQkq"
     recent_en_passant_target = "-"
     halfmove_clock = 0
@@ -66,7 +66,7 @@ class Board:
 
         # Can be "compressed" to reduce the lines
         # Second Field: active color
-        fen += " " + self.turn
+        fen += " " + self.turn.value
 
         # Third Field: castling availability
         fen += " " + self.castling_avail
@@ -83,8 +83,113 @@ class Board:
         self.fen = fen
         return fen
 
-    def get_possible_moves():
-        pass
+    def get_possible_moves(self):
+        """
+        Returns a set of possible moves on the board 
+        with a move being encoded in long_algebraic form 'e1e4'
+        """
+        board = self.board
+        possible_moves = set()
+        
+        # Helper: check if position is on board
+        def on_board(r, c):
+            return 0 <= r < 8 and 0 <= c < 8
+
+        # Helper: check if square is opponent's piece
+        def is_opponent(square, my_color):
+            if square is None:
+                return False
+            return square[1] != my_color
+        
+        # Helper: check if square is friendly piece
+        def is_friendly(square, my_color):
+            if square is None:
+                return False
+            return square[1] == my_color
+        
+        # Helper: add sliding moves (bishop/rook/queen)
+        def add_sliding_moves(r, c, directions, my_color):
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                while on_board(nr, nc):
+                    target = board[nr][nc]
+                    if target is None:
+                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                    else:
+                        if is_opponent(target, my_color):
+                            possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                        break
+                    nr += dr
+                    nc += dc
+        
+        # Helper: add single-step moves (knight/king)
+        def add_step_moves(r, c, directions, my_color):
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                if on_board(nr, nc):
+                    target = board[nr][nc]
+                    if not is_friendly(target, my_color):
+                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+        
+        # Direction definitions
+        knight_dirs = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, 2), (1, -2), (2, -1), (2, 1)]
+        bishop_dirs = [(-1, -1), (-1, 1), (1, 1), (1, -1)]
+        rook_dirs = [(-1, 0), (1, 0), (0, 1), (0, -1)]
+        queen_dirs = bishop_dirs + rook_dirs
+        king_dirs = queen_dirs
+        
+        # Determine which color to move
+        my_color = Color.WHITE if self.turn == 'w' else Color.BLACK
+        
+        # Scan board for pieces
+        for r in range(8):
+            for c in range(8):
+                square = board[r][c]
+                if square is None:
+                    continue
+                
+                piece, color = square
+                if color != my_color:
+                    continue
+                
+                # Dispatch based on piece type
+                if piece == Piece.BISHOP:
+                    add_sliding_moves(r, c, bishop_dirs, my_color)
+                elif piece == Piece.ROOK:
+                    add_sliding_moves(r, c, rook_dirs, my_color)
+                elif piece == Piece.QUEEN:
+                    add_sliding_moves(r, c, queen_dirs, my_color)
+                elif piece == Piece.KNIGHT:
+                    add_step_moves(r, c, knight_dirs, my_color)
+                elif piece == Piece.KING:
+                    add_step_moves(r, c, king_dirs, my_color)
+                elif piece == Piece.PAWN:
+                    # Pawn direction depends on color
+                    if my_color == Color.WHITE:
+                        forward = -1  # white moves up the board (row decreases)
+                        start_row = 6  # white pawns start at row 6 (rank 2)
+                    else:
+                        forward = 1   # black moves down the board (row increases)
+                        start_row = 1  # black pawns start at row 1 (rank 7)
+                    
+                    # Pawn captures (diagonal)
+                    for dc in [-1, 1]:
+                        nr, nc = r + forward, c + dc
+                        if on_board(nr, nc):
+                            target = board[nr][nc]
+                            if is_opponent(target, my_color):
+                                possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                    
+                    # Pawn forward move (one square)
+                    nr = r + forward
+                    if on_board(nr, c) and board[nr][c] is None:
+                        possible_moves.add(Move(c, 7 - r, c, 7 - nr))
+                        
+                        # Pawn double move from starting position
+                        nr2 = nr + forward
+                        if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
+                            possible_moves.add(Move(c, 7 - r, c, 7 - nr2))
+        return possible_moves
 
     def make_moves(self, moves: list[Move]):
         for move in moves:

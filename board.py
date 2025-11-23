@@ -6,7 +6,7 @@ class Board:
         self.board = [[None for _ in range(8)] for _ in range(8)]
         self.turn = Color.WHITE
         self.castling_avail: dict[Color, set[Piece]] = {Color.BLACK : set(), Color.WHITE: set()}
-        self.recent_en_passant_target = "-"
+        self.recent_en_passant_target: tuple[int, int] = None
         self.halfmove_clock = 0
         self.fullmoves = 1
 
@@ -40,7 +40,10 @@ class Board:
                 self.castling_avail[Color.WHITE].add(Piece(char.upper()))
             elif char.islower():
                 self.castling_avail[Color.BLACK].add(Piece(char.upper()))
-        self.recent_en_passant_target = params[3]
+        if params[3] == "-":
+            pass
+        else:
+            self.recent_en_passant_target = tuple[ord(params[3][0]) - ord('a'), int(params[3][1])]
         self.halfmove_clock = int(params[4])
         self.fullmoves = int(params[5])
 
@@ -88,7 +91,10 @@ class Board:
             fen += "-"
 
         # Fourth Field: en passant target square
-        fen += " " + self.recent_en_passant_target
+        if self.recent_en_passant_target == None:
+            fen += " -"
+        else:
+            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + self.recent_en_passant_target[1]
 
         # Fifth Field: halfmove clock
         fen += " " + str(self.halfmove_clock)

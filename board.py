@@ -91,7 +91,7 @@ class Board:
             fen += "-"
 
         # Fourth Field: en passant target square
-        if self.recent_en_passant_target == None:
+        if self.recent_en_passant_target is None:
             fen += " -"
         else:
             fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + self.recent_en_passant_target[1]

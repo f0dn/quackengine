@@ -238,11 +238,5 @@ class Board:
                         self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
     
     def copy_board(self):
-        other = Board()
-        other.Board = self.board
-        other.turn = self.turn
-        other.castling_avail = self.castling_avail
-        other.recent_en_passant_target = self.recent_en_passant_target
-        other.halfmove_clock = self.halfmove_clock
-        other.fullmoves = self.fullmoves
+        other = Board(self.to_fen())
         return other

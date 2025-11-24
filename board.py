@@ -11,18 +11,18 @@ class Board:
         self.fullmoves = 1
 
         row = 0
-        col = 8
+        col = 7
         
         params = []
         params = fen.split()
 
         for char in reversed(params[0]):
             if col == -1:
-                col = 8
+                col = 7
 
             if char == "/":
                 row += 1
-                col = 8
+                col = 7
             elif char.isdigit():
                 for _ in range(int(char)):
                     self.board[row][col] = None

@@ -74,7 +74,7 @@ class Board:
             rows.append(fen_row)
 
         # First Field: piece placement
-        fen = '/'.join(rows)
+        fen = '/'.join(rows[::-1])
 
         # Can be "compressed" to reduce the lines
         # Second Field: active color

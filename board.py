@@ -11,26 +11,25 @@ class Board:
         self.fullmoves = 1
 
         row = 0
-        col = 0
+        col = 8
         
         params = []
         params = fen.split()
 
-        for char in params[0]:
-            if col == 9:
-                col = 0
+        for char in reversed(params[0]):
+            if col == -1:
+                col = 8
 
             if char == "/":
                 row += 1
-                col = 0
+                col = 8
             elif char.isdigit():
                 for _ in range(int(char)):
                     self.board[row][col] = None
-                    col += 1
+                    col -= 1
             else:
                 self.board[row][col] = (Piece(char), Color.WHITE) if char.isupper() else (Piece(char.upper()), Color.BLACK)
-
-                col += 1
+                col -= 1
         
         self.turn = Color(params[1])
         for char in params[2]:

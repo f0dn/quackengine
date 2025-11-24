@@ -1,11 +1,22 @@
+import chess
+import chess.syzgy
+
 class Engine: 
-    def __init__(self):
+    def __init__(self, path):
         self.options_dict = {}
-        
+        self.path = path
+
         file = open('openings/2moves_v1.epd.txt')
         self.openings = set()
         for position in file:
             self.openings.add(position)
+
+    def __enter__(self):
+        self.tablebase = chess.syzgy.open_tablebase(self.path)
+        return self
+
+    def __exit__(self):
+        self.tablebase.close()
 
     def start(self):
         while True:
@@ -83,3 +94,8 @@ class Engine:
         if fen_position in self.openings:
             return True
         return False
+
+
+with Engine("data/syzygy/regular") as tablebase:
+    board = chess.Board("8/2K5/4B3/3N4/8/8/4k3/8 b - - 0 1")
+    print(tablebase.probe_wdl(board))

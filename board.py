@@ -11,26 +11,25 @@ class Board:
         self.fullmoves = 1
 
         row = 0
-        col = 0
+        col = 7
         
         params = []
         params = fen.split()
 
-        for char in params[0]:
-            if col == 9:
-                col = 0
+        for char in reversed(params[0]):
+            if col == -1:
+                col = 7
 
             if char == "/":
                 row += 1
-                col = 0
+                col = 7
             elif char.isdigit():
                 for _ in range(int(char)):
                     self.board[row][col] = None
-                    col += 1
+                    col -= 1
             else:
                 self.board[row][col] = (Piece(char), Color.WHITE) if char.isupper() else (Piece(char.upper()), Color.BLACK)
-
-                col += 1
+                col -= 1
         
         self.turn = Color(params[1])
         for char in params[2]:
@@ -75,7 +74,7 @@ class Board:
             rows.append(fen_row)
 
         # First Field: piece placement
-        fen = '/'.join(rows)
+        fen = '/'.join(rows[::-1])
 
         # Can be "compressed" to reduce the lines
         # Second Field: active color

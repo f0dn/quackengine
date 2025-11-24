@@ -2,37 +2,50 @@ from piece import Color, Piece
 from move import Move
 
 class Board:
-    board = [[None for _ in range(8)] for _ in range(8)]
-    turn = Color.WHITE
-    castling_avail = "KQkq"
-    recent_en_passant_target = "-"
-    halfmove_clock = 0
-    fullmoves = 1
-    fen = ""
-
     def __init__(self, fen):
-        self.fen = fen
-        self.from_fen(fen)
+        self.board = [[None for _ in range(8)] for _ in range(8)]
+        self.turn = Color.WHITE
+        self.castling_avail: dict[Color, set[Piece]] = {Color.BLACK : set(), Color.WHITE: set()}
+        self.recent_en_passant_target: tuple[int, int] | None = None
+        self.halfmove_clock = 0
+        self.fullmoves = 1
 
-    def from_fen(self, fen):
         row = 0
         col = 0
+        
+        params = []
+        params = fen.split()
 
-        for idx in range(0, fen.index(" ")):
-            if (col == 9):
+        for char in params[0]:
+            if col == 9:
                 col = 0
 
-            if (fen[idx] == "/"):
+            if char == "/":
                 row += 1
                 col = 0
-            elif (fen[idx].isdigit()):
-                for _ in range(int(fen[idx])):
+            elif char.isdigit():
+                for _ in range(int(char)):
                     self.board[row][col] = None
                     col += 1
             else:
-                self.board[row][col] = (Piece(fen[idx]), Color.WHITE) if fen[idx].isupper() else (Piece(fen[idx].upper()), Color.BLACK)
+                self.board[row][col] = (Piece(char), Color.WHITE) if char.isupper() else (Piece(char.upper()), Color.BLACK)
 
                 col += 1
+        
+        self.turn = Color(params[1])
+        for char in params[2]:
+            if char == "-":
+                break
+            elif char.isupper():
+                self.castling_avail[Color.WHITE].add(Piece(char.upper()))
+            elif char.islower():
+                self.castling_avail[Color.BLACK].add(Piece(char.upper()))
+        if params[3] == "-":
+            pass
+        else:
+            self.recent_en_passant_target = tuple[ord(params[3][0]) - ord('a'), int(params[3][1])-1]
+        self.halfmove_clock = int(params[4])
+        self.fullmoves = int(params[5])
 
     def to_fen(self):
         fen = ""
@@ -69,10 +82,19 @@ class Board:
         fen += " " + self.turn.value
 
         # Third Field: castling availability
-        fen += " " + self.castling_avail
+        fen += " "
+        arr = sorted(map(lambda x: x.value, list(self.castling_avail[Color.WHITE])))
+        fen += "".join(arr)
+        arr2 = sorted(map(lambda x: x.value.lower(), list(self.castling_avail[Color.BLACK])))
+        fen += "".join(arr2)
+        if len(arr) == 0 and len(arr2) == 0:
+            fen += "-"
 
         # Fourth Field: en passant target square
-        fen += " " + self.recent_en_passant_target
+        if self.recent_en_passant_target is None:
+            fen += " -"
+        else:
+            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + (self.recent_en_passant_target[1]+1)
 
         # Fifth Field: halfmove clock
         fen += " " + str(self.halfmove_clock)
@@ -214,3 +236,7 @@ class Board:
                     else: # castling long side
                         self.board[0][from_y] = None
                         self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
+    
+    def copy_board(self):
+        other = Board(self.to_fen())
+        return other

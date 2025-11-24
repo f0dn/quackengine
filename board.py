@@ -236,3 +236,7 @@ class Board:
                     else: # castling long side
                         self.board[0][from_y] = None
                         self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
+    
+    def copy_board(self):
+        other = Board(self.to_fen())
+        return other

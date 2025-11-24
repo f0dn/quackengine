@@ -1,10 +1,12 @@
 import chess
 import chess.syzgy
+import board
 
 class Engine: 
-    def __init__(self, path):
+    def __init__(self, path, board=board.Board()):
         self.options_dict = {}
         self.path = path
+        self.board = board
 
         file = open('openings/2moves_v1.epd.txt')
         self.openings = set()
@@ -18,6 +20,22 @@ class Engine:
     def __exit__(self):
         self.tablebase.close()
 
+    def best_move(self):
+        possible_moves = test_board.get_possible_moves()
+        moves_wdl = {}
+
+        for move in possible_moves:
+            test_board = self.board.copy()
+            test_board.make_moves([move])
+
+            # probe the tablebase for WDL value
+            wdl_index = self.tablebase.get_wdl(test_board)
+            moves_wdl[move] = wdl_index
+        
+        # Sort moves by WDL value from highest to lowest
+        moves_wdl = dict(sorted(moves_wdl.items(), key=lambda item: item[1], reverse=True))   
+        return list(moves_wdl.keys())[0]     
+        
     def start(self):
         while True:
             user_input = input()
@@ -94,8 +112,3 @@ class Engine:
         if fen_position in self.openings:
             return True
         return False
-
-
-with Engine("data/syzygy/regular") as tablebase:
-    board = chess.Board("8/2K5/4B3/3N4/8/8/4k3/8 b - - 0 1")
-    print(tablebase.probe_wdl(board))

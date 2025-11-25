@@ -135,10 +135,10 @@ class Board:
                 while on_board(nr, nc):
                     target = board[nr][nc]
                     if target is None:
-                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                        possible_moves.add(Move(c, r, nc, nr))
                     else:
                         if is_opponent(target, my_color):
-                            possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                            possible_moves.add(Move(c, r, nc, nr))
                         break
                     nr += dr
                     nc += dc
@@ -150,7 +150,7 @@ class Board:
                 if on_board(nr, nc):
                     target = board[nr][nc]
                     if not is_friendly(target, my_color):
-                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                        possible_moves.add(Move(c, r, nc, nr))
         
         # Direction definitions
         knight_dirs = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, 2), (1, -2), (2, -1), (2, 1)]
@@ -187,11 +187,11 @@ class Board:
                 elif piece == Piece.PAWN:
                     # Pawn direction depends on color
                     if my_color == Color.WHITE:
-                        forward = -1  # white moves up the board (row decreases)
-                        start_row = 6  # white pawns start at row 6 (rank 2)
+                        forward = 1  # white moves up the board (row increases)
+                        start_row = 1  # white pawns start at row 1 (rank 2)
                     else:
-                        forward = 1   # black moves down the board (row increases)
-                        start_row = 1  # black pawns start at row 1 (rank 7)
+                        forward = -1   # black moves down the board (row decreases)
+                        start_row = 6  # black pawns start at row 6 (rank 7)
                     
                     # Pawn captures (diagonal)
                     for dc in [-1, 1]:
@@ -199,17 +199,17 @@ class Board:
                         if on_board(nr, nc):
                             target = board[nr][nc]
                             if is_opponent(target, my_color):
-                                possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                                possible_moves.add(Move(c, r, nc, nr))
                     
                     # Pawn forward move (one square)
                     nr = r + forward
                     if on_board(nr, c) and board[nr][c] is None:
-                        possible_moves.add(Move(c, 7 - r, c, 7 - nr))
+                        possible_moves.add(Move(c, r, c, nr))
                         
                         # Pawn double move from starting position
                         nr2 = nr + forward
                         if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
-                            possible_moves.add(Move(c, 7 - r, c, 7 - nr2))
+                            possible_moves.add(Move(c, r, c, nr2))
         return possible_moves
 
     def make_moves(self, moves: list[Move]):
@@ -234,4 +234,3 @@ class Board:
                         self.board[to_x - 1][to_y] = (Piece.ROOK, moving_piece[1])
                     else: # castling long side
                         self.board[0][from_y] = None
-                        self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])

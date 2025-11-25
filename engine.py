@@ -1,7 +1,9 @@
+from board import Board
+
 class Engine: 
     def __init__(self):
         self.options_dict = {}
-        
+        self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
         file = open('openings/2moves_v1.epd.txt')
         self.openings = set()
         for position in file:
@@ -83,3 +85,14 @@ class Engine:
         if fen_position in self.openings:
             return True
         return False
+    
+    def minimax(self):
+        possible_moves = self.board.get_possible_moves()
+        minimax_board = self.board
+        eval_arr = {}
+        for move in possible_moves:
+            minimax_board.make_moves(move)
+            eval = minimax_board.evaluate_position()
+            eval_arr[move] = eval
+            minimax_board = self.board
+        return max(eval_arr, key=eval_arr.get, default=None) if self.board.turn == 'w' else min(eval_arr, key=eval_arr.get, default=None)

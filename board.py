@@ -88,24 +88,24 @@ class Board:
 
     def make_moves(self, moves: list[Move]):
         for move in moves:
-            from_x, from_y = move.src_coords
-            to_x, to_y = move.target_coords
+            from_col, from_row = move.src_coords
+            to_col, to_row = move.target_coords
 
             if move.promoted_to: # promotion move
-                color = (self.board[from_x][from_y])[1]
+                color = (self.board[from_row][from_col])[1]
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = (move.promoted_to, color)
+                self.board[from_row][from_col] = None
+                self.board[to_row][to_col] = (move.promoted_to, color)
             else:
-                moving_piece = self.board[from_x][from_y]
+                moving_piece = self.board[from_row][from_col]
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = move.chess_piece
+                self.board[from_row][from_col] = None
+                self.board[to_row][to_col] = moving_piece
 
-                if moving_piece[0] == Piece.KING and abs(from_x - to_x) == 2: # castling move
-                    if (from_x - to_x < 0): # castling short side
-                        self.board[7][from_y] = None
-                        self.board[to_x - 1][to_y] = (Piece.ROOK, moving_piece[1])
+                if moving_piece[0] == Piece.KING and abs(from_col - to_col) == 2: # castling move
+                    if (from_col - to_col < 0): # castling short side
+                        self.board[from_row][7] = None
+                        self.board[to_row][to_col - 1] = (Piece.ROOK, moving_piece[1])
                     else: # castling long side
-                        self.board[0][from_y] = None
-                        self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
+                        self.board[from_row][0] = None
+                        self.board[to_row][to_col + 1] = (Piece.ROOK, moving_piece[1])

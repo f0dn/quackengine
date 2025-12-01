@@ -1,11 +1,15 @@
+from board import Board
+from move import Move
+
 class Engine: 
     def __init__(self):
         self.options_dict = {}
+        self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
         
-        file = open('openings/2moves_v1.epd.txt')
-        self.openings = set()
-        for position in file:
-            self.openings.add(position)
+        # file = open('openings/2moves_v1.epd.txt')
+        # self.openings = set()
+        # for position in file:
+        #     self.openings.add(position)
 
     def start(self):
         while True:
@@ -33,15 +37,22 @@ class Engine:
         elif("setoption" in command):
             #should read what GUI set the option to, then engine sets up internal values
             pass
-        elif("ucinewgame"):
+        elif(command == "ucinewgame"):
             #when GUI tells engine that is is searching on a game that it hasn't searched on before
             pass
         elif("debug" in command):
             #engine should send additional infos to the GUI, off by default, can be sent anytime
             pass
         elif("position" in command):
-            #needs a new thread
-            pass
+            if ("startpos" in command):
+                self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            else:
+                start_index = command.find("fen") + 4
+                end_index = command.find("moves") - 1
+                self.board = Board(command[start_index:end_index])
+            
+            moves = [Move.from_long_algebraic(move) for move in command[(command.find("moves") + 6):].split(' ')]
+            self.board.make_moves(moves)
         elif("go" in command):
             self.calculate_best_move()
             #needs a new thread

@@ -1,7 +1,8 @@
 from engine import Engine
 
 def main():
-    Engine().start()
+    with Engine("database") as engine:
+        engine.start()
 
 if __name__ == "__main__":
     main()

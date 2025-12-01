@@ -1,9 +1,8 @@
-import chess
-import chess.syzgy
+import chess.syzygy as syzygy
 import board
 
 class Engine: 
-    def __init__(self, path, board=board.Board()):
+    def __init__(self, path, board=board.Board):
         self.options_dict = {}
         self.path = path
         self.board = board
@@ -14,13 +13,14 @@ class Engine:
             self.openings.add(position)
 
     def __enter__(self):
-        self.tablebase = chess.syzgy.open_tablebase(self.path)
+        self.tablebase = syzygy.open_tablebase(self.path)
         return self
 
     def __exit__(self):
         self.tablebase.close()
 
     def best_move(self):
+        test_board = self.board.copy()
         possible_moves = test_board.get_possible_moves()
         moves_wdl = {}
 

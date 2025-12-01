@@ -1,7 +1,7 @@
 from engine import Engine
 
 def test_options(capsys):
-    engine = Engine()
+    engine = Engine("path")
     engine.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
     captured = capsys.readouterr()
     assert captured.out == "option name Hash type spin default 1 min 1 max 128\n"

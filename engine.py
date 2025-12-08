@@ -35,7 +35,7 @@ class Engine:
         elif("setoption" in command):
             #should read what GUI set the option to, then engine sets up internal values
             pass
-        elif("ucinewgame"):
+        elif(command == "ucinewgame"):
             #when GUI tells engine that is is searching on a game that it hasn't searched on before
             pass
         elif("debug" in command):
@@ -85,14 +85,36 @@ class Engine:
         if fen_position in self.openings:
             return True
         return False
-    
-    def minimax(self):
-        possible_moves = self.board.get_possible_moves()
-        minimax_board = self.board
-        eval_arr = {}
-        for move in possible_moves:
-            minimax_board.make_moves(move)
-            eval = minimax_board.evaluate_position()
-            eval_arr[move] = eval
-            minimax_board = self.board
-        return max(eval_arr, key=eval_arr.get, default=None) if self.board.turn == 'w' else min(eval_arr, key=eval_arr.get, default=None)
+
+    def minimax(self, board, depth, alpha, beta):
+        if depth == 0:
+            return board.evaluate_position(), None
+        possible_moves = board.get_possible_moves()
+        if(board.turn == "w"):
+            max_eval = float('-inf')
+            best_move = None
+            for move in possible_moves:
+                minimax_board = board.copy_board()
+                minimax_board.make_moves(move)
+                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = move
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = float('inf')
+            best_move = None
+            for move in possible_moves:
+                minimax_board = board.copy_board()
+                minimax_board.make_moves(move)
+                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = move
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval, best_move

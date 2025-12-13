@@ -1,5 +1,4 @@
 from piece import Color
-from piece import Piece
 
 class Engine: 
     def __init__(self):

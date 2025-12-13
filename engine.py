@@ -1,4 +1,56 @@
 from piece import Color
+from piece import Piece
+PawnTable = [
+     0,  0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    10, 10, 20, 30, 30, 20, 10, 10,
+     5,  5, 10, 27, 27, 10,  5,  5,
+     0,  0,  0, 25, 25,  0,  0,  0,
+     5, -5,-10,  0,  0,-10, -5,  5,
+     5, 10, 10,-25,-25, 10, 10,  5,
+     0,  0,  0,  0,  0,  0,  0,  0
+]
+KnightTable = [
+    -50,-40,-30,-30,-30,-30,-40,-50,
+    -40,-20,  0,  0,  0,  0,-20,-40,
+    -30,  0, 10, 15, 15, 10,  0,-30,
+    -30,  5, 15, 20, 20, 15,  5,-30,
+    -30,  0, 15, 20, 20, 15,  0,-30,
+    -30,  5, 10, 15, 15, 10,  5,-30,
+    -40,-20,  0,  5,  5,  0,-20,-40,
+    -50,-40,-20,-30,-30,-20,-40,-50,
+]
+BishopTable = [
+    -20,-10,-10,-10,-10,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5, 10, 10,  5,  0,-10,
+    -10,  5,  5, 10, 10,  5,  5,-10,
+    -10,  0, 10, 10, 10, 10,  0,-10,
+    -10, 10, 10, 10, 10, 10, 10,-10,
+    -10,  5,  0,  0,  0,  0,  5,-10,
+    -20,-10,-40,-10,-10,-40,-10,-20,
+]
+KingTable = [
+  -30, -40, -40, -50, -50, -40, -40, -30,
+  -30, -40, -40, -50, -50, -40, -40, -30,
+  -30, -40, -40, -50, -50, -40, -40, -30,
+  -30, -40, -40, -50, -50, -40, -40, -30,
+  -20, -30, -30, -40, -40, -30, -30, -20,
+  -10, -20, -20, -20, -20, -20, -20, -10, 
+   20,  20,   0,   0,   0,   0,  20,  20,
+   20,  30,  10,   0,   0,  10,  30,  20
+]
+KingTableEndGame = [
+    -50,-40,-30,-20,-20,-30,-40,-50,
+    -30,-20,-10,  0,  0,-10,-20,-30,
+    -30,-10, 20, 30, 30, 20,-10,-30,
+    -30,-10, 30, 40, 40, 30,-10,-30,
+    -30,-10, 30, 40, 40, 30,-10,-30,
+    -30,-10, 20, 30, 30, 20,-10,-30,
+    -30,-30,  0,  0,  0,  0,-30,-30,
+    -50,-30,-30,-30,-30,-30,-30,-50
+]
+
 class Engine: 
     def __init__(self):
         pass
@@ -68,65 +120,43 @@ class Engine:
 def evaluate_position(self):
     whitepieces = []
     blackpieces = []
+    whitepositions = []
+    blackpositions = []
     self.board[0][0]
     self.white_moves = []
     self.black_moves = []
-    for row in self.board:
-        for piece in row: 
-            if piece[0] == Color.WHITE: 
+
+    for rowindex, row in enumerate(self.board):
+        for columnindex, piece in enumerate(row): 
+            if piece[0] == Color.WHITE:
                 whitepieces.append(piece)
-            elif piece[0] == Color.BLACK:
+            elif piece[1] == Color.BLACK:
                 blackpieces.append(piece)
+                blackpositions.append(tuple[rowindex, columnindex])
             else:
                 pass
-    # The piece should be in the list as [Color][Piece] as [0 or 1]['P' 'N'...]
     total_blackpieces =0
     total_whitepieces = 0
-    for piece in blackpieces:
+    for index, piece in enumerate(blackpieces):
         total_blackpieces += piece.piece_value()
+        if piece[1] == Piece.PAWN:
+            total_blackpieces += PawnTable[7-blackpositions[index][0], blackpositions[index][1]]
+        elif piece[1] == Piece.KNIGHT:
+            total_blackpieces += KnightTable[7-blackpositions[index][0], blackpositions[index][1]]
+        elif piece[1] == Piece.BISHOP:
+            total_blackpieces += BishopTable[7-blackpositions[index][0], blackpositions[index][1]]
+        elif piece[1] == Piece.KING:
+            total_blackpieces += KingTable[7-blackpositions[index][0], blackpositions[index][1]]
     for piece in whitepieces:
         total_whitepieces +=piece.piece_value()
-    #Lines 89-111 Calculate how threats on the pieces affect the position 
-    threatsob = []
-    threatsow = []
-    moves = self.get_possible_moves()
-    #move.src_coords and move.target_coords to it's for where it's coming for and wwhere going to. can index into boards
-    #if we are black
-    self.board[move.src_coords[1]][move.src_coords[0] #in move, (file, rank) is column, row
-    # for self.board[move.src_coords[1][move.src_coords[0]]] == Color.White:
-    bvalue_after_threats = 0 
-    wvalue_after_threats = 0 
-    for row in self.board: 
-        for piece in row: 
-            if piece == Color.WHITE: 
-                for move in moves: 
-                    if move in move.src_coords and move in move.target_coords: 
-                        threatsow.append(move.src_coords)
-                        wvalue_after_threats-= 0.1 * piece.piece_value()     
-            elif piece == Color.BLACK: 
-                for move in moves: 
-                    if move in move.src_coords and move in move.target_coords:
-                        threatsob.append(move.src_coords)
-                        bvalue_after_threats -= 0.1 *piece.piece_value()
-    #Next section calculates the extent to which the king is under threat
-    wfriendly = []
-    bfriendly = []
-    for row in self.board:
-        for piece in row:
-            if piece == Piece.KING and piece == Color.WHITE:
-                for i in range(9) #or, if i can make a loop that determines how many squares are around the king square
-                     for next(piece):
-                        wfriendly.append(is_friendly(piece, Color.WHITE))
-                        wfriendly_count = wfriendly.count(True)
-                        wopponent_count = wfriendly.count(False)
-            if piece ==Piece.KING and piece == Color.BLACK:
-                for i in range(9): 
-                    for next(piece)
-                        bfriendly.append(is_friendly(piece, Color.BLACK))
-                        bfriendly_count = bfriendly.count(True)
-                        bopponent_count = bfriendly.count(False)
-    total_whitepieces = total_whitepieces - wvalue_after_threats
-    total_blackpieces = total_blackpieces -bvalue_after_threats
+        if piece[1] == Piece.PAWN:
+            total_whitepieces += PawnTable[whitepositions[index][0], whitepositions[index][1]]
+        elif piece[1] == Piece.KNIGHT:
+            total_whitepieces += KnightTable[whitepositions[index][0], whitepositions[index][1]]
+        elif piece[1] == Piece.BISHOP:
+            total_whitepieces += BishopTable[whitepositions[index][0], whitepositions[index][1]]
+        elif piece[1] == Piece.KING:
+            total_whitepieces += KingTable[whitepositions[index][0], whitepositions[index][1]]
     difference = total_whitepieces - total_blackpieces
     return difference 
 #i need to find what kind of pieces surround the king 

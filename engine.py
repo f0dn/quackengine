@@ -71,46 +71,64 @@ def evaluate_position(self):
     self.board[0][0]
     self.white_moves = []
     self.black_moves = []
-
     for row in self.board:
         for piece in row: 
-            if piece[0] == Color.WHITE:
+            if piece[0] == Color.WHITE: 
                 whitepieces.append(piece)
-            elif piece[1] == Color.BLACK:
+            elif piece[0] == Color.BLACK:
                 blackpieces.append(piece)
             else:
                 pass
+    # The piece should be in the list as [Color][Piece] as [0 or 1]['P' 'N'...]
     total_blackpieces =0
     total_whitepieces = 0
     for piece in blackpieces:
         total_blackpieces += piece.piece_value()
     for piece in whitepieces:
         total_whitepieces +=piece.piece_value()
+    #Lines 89-111 Calculate how threats on the pieces affect the position 
+    threatsob = []
+    threatsow = []
+    moves = self.get_possible_moves()
+    #move.src_coords and move.target_coords to it's for where it's coming for and wwhere going to. can index into boards
+    #if we are black
+    self.board[move.src_coords[1]][move.src_coords[0] #in move, (file, rank) is column, row
+    # for self.board[move.src_coords[1][move.src_coords[0]]] == Color.White:
+    bvalue_after_threats = 0 
+    wvalue_after_threats = 0 
+    for row in self.board: 
+        for piece in row: 
+            if piece == Color.WHITE: 
+                for move in moves: 
+                    if move in move.src_coords and move in move.target_coords: 
+                        threatsow.append(move.src_coords)
+                        wvalue_after_threats-= 0.1 * piece.piece_value()     
+            elif piece == Color.BLACK: 
+                for move in moves: 
+                    if move in move.src_coords and move in move.target_coords:
+                        threatsob.append(move.src_coords)
+                        bvalue_after_threats -= 0.1 *piece.piece_value()
+    #Next section calculates the extent to which the king is under threat
+    wfriendly = []
+    bfriendly = []
+    for row in self.board:
+        for piece in row:
+            if piece == Piece.KING and piece == Color.WHITE:
+                for i in range(9) #or, if i can make a loop that determines how many squares are around the king square
+                     for next(piece):
+                        wfriendly.append(is_friendly(piece, Color.WHITE))
+                        wfriendly_count = wfriendly.count(True)
+                        wopponent_count = wfriendly.count(False)
+            if piece ==Piece.KING and piece == Color.BLACK:
+                for i in range(9): 
+                    for next(piece)
+                        bfriendly.append(is_friendly(piece, Color.BLACK))
+                        bfriendly_count = bfriendly.count(True)
+                        bopponent_count = bfriendly.count(False)
+    total_whitepieces = total_whitepieces - wvalue_after_threats
+    total_blackpieces = total_blackpieces -bvalue_after_threats
     difference = total_whitepieces - total_blackpieces
-    return difference
-   # threatsob = []
-    # threatsow = []
-    # if element in self.blackpieces == element in self.white_moves:
-    #     threatsob.append(element)
-    # if element in self.whitepieces == element in self.black_moves:
-    #     threatsow.append(element)
-    # if threatsob == 'P':
-    #     self.black_material_value -=1
-    # if threatsob == 'B':
-    #     self.black_material_value -=3
-    # if threatsob == 'N':
-    #     self.black_material_value -=3
-    # if threatsob == 'R':
-    #     self.black_material_value -=5
-    # if threatsob == 'Q':
-    #     self.black_material_value -=9
-    # if threatsow == 'P':
-    #     self.white_material_value -=1
-    # if threatsow == 'B':
-    #     self.white_material_value -=3
-    # if threatsow == 'N':
-    #     self.white_material_value -=3
-    # if threatsow == 'R':
-    #     self.white_material_value -=5
-    # if threatsow == 'Q':
-    #     self.white_matieral_value -=9
+    return difference 
+#i need to find what kind of pieces surround the king 
+
+    

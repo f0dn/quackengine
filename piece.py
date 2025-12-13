@@ -13,14 +13,14 @@ class Piece(Enum):
     KING = 'K'
     def piece_value(self):
         if self == Piece.PAWN:
-            return 1
+            return 100
         if self == Piece.BISHOP:
-            return 3
+            return 300
         if self ==Piece.KNIGHT:
-            return 3
+            return 300
         if self == Piece.ROOK:
-            return 5
+            return 500
         if self == Piece.QUEEN: 
-            return 9 
+            return 900 
         if self == Piece.KING:
             return 100000000000000000000000000000000000

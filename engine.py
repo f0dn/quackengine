@@ -1,8 +1,16 @@
 from piece import Color
+from board import Board
+from move import Move
 
 class Engine: 
     def __init__(self):
-        pass
+        self.options_dict = {}
+        self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        
+        # file = open('openings/2moves_v1.epd.txt')
+        # self.openings = set()
+        # for position in file:
+        #     self.openings.add(position)
 
     def start(self):
         while True:
@@ -18,29 +26,34 @@ class Engine:
             print("id author project quack")
             #find out what options engine should support
             #engine needs to tell the GUI which parameters can be changed in the engine, example below:
-            print("option name Hash type spin default 1 min 1 max 128")
-            print("option name NalimovPath type string default <empty>")
-            print("option name NalimovCache type spin default 1 min 1 max 32")
-            print("option name Nullmove type check default true")
-            print("option name Style type combo default Normal var Solid var Normal var Risky")
+            self.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
+            self.add_options("NalimovPath", "string", {"default": "<empty>"})
+            self.add_options("NalimovCache", "spin", {"default": 1, "min": 1, "max": 32})
+            self.add_options("Nullmove", "check", {"default": "true"})
+            self.add_options("Style", "combo", {"default": "Normal", "var": ["Solid", "Normal", "Risky"]})
             print("uciok")
-            #engine can send registration checking after the uciok command followed by either registration ok or registration error
-            #registration needed for engines that need a username and/or a code to function with all features
         elif(command == "isready"):
             print("readyok")
             #can be sent if engine is calculating, and engine will continue searching after answering
         elif("setoption" in command):
             #should read what GUI set the option to, then engine sets up internal values
             pass
-        elif("ucinewgame"):
+        elif(command == "ucinewgame"):
             #when GUI tells engine that is is searching on a game that it hasn't searched on before
             pass
         elif("debug" in command):
             #engine should send additional infos to the GUI, off by default, can be sent anytime
             pass
         elif("position" in command):
-            #needs a new thread
-            pass
+            if ("startpos" in command):
+                self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            else:
+                start_index = command.find("fen") + 4
+                end_index = command.find("moves") - 1
+                self.board = Board(command[start_index:end_index])
+            
+            moves = [Move.from_long_algebraic(move) for move in command[(command.find("moves") + 6):].split(' ')]
+            self.board.make_moves(moves)
         elif("go" in command):
             self.calculate_best_move()
             #needs a new thread
@@ -65,6 +78,18 @@ class Engine:
         for type, value in list_of_tuples:
             full_info_str += f"{type} {value} "
         print(full_info_str)
+    
+    def add_options(self, option_name, type, value):
+        self.options_dict[option_name] = {"type": type, "value": value} #value would be a dict of default, min, max etc
+        parts = []
+        for k, v in value.items():
+            if isinstance(v, list):
+                for item in v:
+                    parts.append(f"{k} {item}")
+            else:
+                parts.append(f"{k} {v}")
+        formatted_value = " ".join(parts)
+        print(f"option name {option_name} type {type} {formatted_value}")
 
     def evaluate_position(self):
         whitepieces = []
@@ -97,3 +122,7 @@ class Engine:
     #i need to find what kind of pieces surround the king 
 
     
+    def is_known_opening(self, fen_position):
+        if fen_position in self.openings:
+            return True
+        return False

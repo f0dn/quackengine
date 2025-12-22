@@ -11,26 +11,25 @@ class Board:
         self.fullmoves = 1
 
         row = 0
-        col = 0
+        col = 7
         
         params = []
         params = fen.split()
 
-        for char in params[0]:
-            if col == 9:
-                col = 0
+        for char in reversed(params[0]):
+            if col == -1:
+                col = 7
 
             if char == "/":
                 row += 1
-                col = 0
+                col = 7
             elif char.isdigit():
                 for _ in range(int(char)):
                     self.board[row][col] = None
-                    col += 1
+                    col -= 1
             else:
                 self.board[row][col] = (Piece(char), Color.WHITE) if char.isupper() else (Piece(char.upper()), Color.BLACK)
-
-                col += 1
+                col -= 1
         
         self.turn = Color(params[1])
         for char in params[2]:
@@ -43,7 +42,7 @@ class Board:
         if params[3] == "-":
             pass
         else:
-            self.recent_en_passant_target = tuple[ord(params[3][0]) - ord('a'), int(params[3][1])-1]
+            self.recent_en_passant_target = (ord(params[3][0]) - ord('a'), int(params[3][1])-1)
         self.halfmove_clock = int(params[4])
         self.fullmoves = int(params[5])
 
@@ -75,7 +74,7 @@ class Board:
             rows.append(fen_row)
 
         # First Field: piece placement
-        fen = '/'.join(rows)
+        fen = '/'.join(rows[::-1])
 
         # Can be "compressed" to reduce the lines
         # Second Field: active color
@@ -94,7 +93,7 @@ class Board:
         if self.recent_en_passant_target is None:
             fen += " -"
         else:
-            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + (self.recent_en_passant_target[1]+1)
+            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + str(self.recent_en_passant_target[1]+1)
 
         # Fifth Field: halfmove clock
         fen += " " + str(self.halfmove_clock)
@@ -136,10 +135,10 @@ class Board:
                 while on_board(nr, nc):
                     target = board[nr][nc]
                     if target is None:
-                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                        possible_moves.add(Move(c, r, nc, nr))
                     else:
                         if is_opponent(target, my_color):
-                            possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                            possible_moves.add(Move(c, r, nc, nr))
                         break
                     nr += dr
                     nc += dc
@@ -151,7 +150,7 @@ class Board:
                 if on_board(nr, nc):
                     target = board[nr][nc]
                     if not is_friendly(target, my_color):
-                        possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                        possible_moves.add(Move(c, r, nc, nr))
         
         # Direction definitions
         knight_dirs = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, 2), (1, -2), (2, -1), (2, 1)]
@@ -188,11 +187,11 @@ class Board:
                 elif piece == Piece.PAWN:
                     # Pawn direction depends on color
                     if my_color == Color.WHITE:
-                        forward = -1  # white moves up the board (row decreases)
-                        start_row = 6  # white pawns start at row 6 (rank 2)
+                        forward = 1  # white moves up the board (row increases)
+                        start_row = 1  # white pawns start at row 1 (rank 2)
                     else:
-                        forward = 1   # black moves down the board (row increases)
-                        start_row = 1  # black pawns start at row 1 (rank 7)
+                        forward = -1   # black moves down the board (row decreases)
+                        start_row = 6  # black pawns start at row 6 (rank 7)
                     
                     # Pawn captures (diagonal)
                     for dc in [-1, 1]:
@@ -200,43 +199,44 @@ class Board:
                         if on_board(nr, nc):
                             target = board[nr][nc]
                             if is_opponent(target, my_color):
-                                possible_moves.add(Move(c, 7 - r, nc, 7 - nr))
+                                possible_moves.add(Move(c, r, nc, nr))
                     
                     # Pawn forward move (one square)
                     nr = r + forward
                     if on_board(nr, c) and board[nr][c] is None:
-                        possible_moves.add(Move(c, 7 - r, c, 7 - nr))
+                        possible_moves.add(Move(c, r, c, nr))
                         
                         # Pawn double move from starting position
                         nr2 = nr + forward
                         if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
-                            possible_moves.add(Move(c, 7 - r, c, 7 - nr2))
+                            possible_moves.add(Move(c, r, c, nr2))
         return possible_moves
 
     def make_moves(self, moves: list[Move]):
-        for move in moves:
-            from_x, from_y = move.src_coords
-            to_x, to_y = move.target_coords
+        for move in [moves]:
+            from_col, from_row = move.src_coords
+            to_col, to_row = move.target_coords
 
             if move.promoted_to: # promotion move
-                color = (self.board[from_x][from_y])[1]
+                color = (self.board[from_row][from_col])[1]
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = (move.promoted_to, color)
+                self.board[from_row][from_col] = None
+                self.board[to_col][to_col] = (move.promoted_to, color)
             else:
-                moving_piece = self.board[from_x][from_y]
+                moving_piece = self.board[from_row][from_col]
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = move.chess_piece
+                self.board[from_row][from_col] = None
+                self.board[to_row][to_col] = moving_piece
 
-                if moving_piece[0] == Piece.KING and abs(from_x - to_x) == 2: # castling move
-                    if (from_x - to_x < 0): # castling short side
-                        self.board[7][from_y] = None
-                        self.board[to_x - 1][to_y] = (Piece.ROOK, moving_piece[1])
+                if moving_piece[0] == Piece.KING and abs(from_col - to_col) == 2: # castling move
+                    if (from_col - to_col < 0): # castling short side
+                        self.board[from_row][7] = None
+                        self.board[to_row][to_col - 1] = (Piece.ROOK, moving_piece[1])
                     else: # castling long side
-                        self.board[0][from_y] = None
-                        self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
+                        self.board[from_row][0] = None
+                        self.board[to_row][to_col + 1] = (Piece.ROOK, moving_piece[1])
     
     def copy_board(self):
         other = Board(self.to_fen())
         return other
+    

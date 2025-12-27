@@ -96,7 +96,6 @@ class Engine:
         blackpieces = []
         whitepositions = []
         blackpositions = []
-        self.board[0][0]
         self.white_moves = []
         self.black_moves = []
 
@@ -106,10 +105,10 @@ class Engine:
                     whitepieces.append(piece)
                 elif piece[1] == Color.BLACK:
                     blackpieces.append(piece)
-                    blackpositions.append(tuple[rowindex, columnindex])
+                    blackpositions.append((rowindex, columnindex))
                 else:
                     pass
-        total_blackpieces =0
+        total_blackpieces = 0
         total_whitepieces = 0
         for index, piece in enumerate(blackpieces):
             total_blackpieces += piece.piece_value()
@@ -124,8 +123,6 @@ class Engine:
         threatsow = []
         moves = self.get_possible_moves()
         #move.src_coords and move.target_coords to it's for where it's coming for and wwhere going to. can index into boards
-        #if we are black
-        self.board[move.src_coords[1]][move.src_coords[0] #in move, (file, rank) is column, row
         # for self.board[move.src_coords[1][move.src_coords[0]]] == Color.White:
         bvalue_after_threats = 0 
         wvalue_after_threats = 0 
@@ -140,56 +137,66 @@ class Engine:
                     for move in moves: 
                         if move in move.src_coords and move in move.target_coords:
                             threatsob.append(move.src_coords)
-                            bvalue_after_threats -= 0.1 *piece.piece_value()
+                            bvalue_after_threats -= 0.1 * piece.piece_value()
         #Next section calculates the extent to which the king is under threat
         wkmoves= []
         bkmoves = []
         #for black king
+        xposking = 0
+        yposking = 0
         for y1 in range(len(self.board)):
-            for x1 in range(len(self.board[y])):
+            for x1 in range(len(self.board[y1])):
                 bking = self.board[y1][x1]
-                #the king is either in position row1, column 5, or row 8, column5
-                for dx1 in range(-1, 1):
-                    for dy1 in range(-1, 1):
-                        if dx1 == 0 and dy1 == 0:
-                            continue
-                            newx1 = x1 + dx1
-                            newy1 = y1 + dy1
-                            bkm = (newx1, newy1)
-                            bkmoves.append(bkm)
-                            for bkm in bkmoves: 
-                                if move in move.src_coords and move in move.target_coords:
-                                    threatsob.append(move.src_coords)
-                                    bvalue_after_threats -= 1 *piece.piece_value()
+                xposking = x1
+                yposking = y1
+        #the king is either in position row1, column 5, or row 8, column5
+        for dx1 in range(-1, 1):
+            for dy1 in range(-1, 1):
+                if dx1 == 0 and dy1 == 0:
+                    continue
+                else:
+                    newx1 = xposking + dx1
+                    newy1 = yposking + dy1
+                    bkm = (newx1, newy1)
+                    bkmoves.append(bkm)
+                    for bkm in bkmoves: 
+                        if move in move.src_coords and move in move.target_coords:
+                            threatsob.append(move.src_coords)
+                            bvalue_after_threats -= 1 *piece.piece_value()
                                 
         #for white king
+        xposking = 0
+        yposking = 0
         for y2 in range(len(self.board)):
             for x2 in range(len(self.board[y])):
                 wking = self.board[y2][x2]
-                for dx2 in range(-1,1):
-                    for dx2 in range(-1,1):
-                        if dx2 == 0 and dy2 ==0:
-                            continue
-                            newx2 = x2+dx2
-                            newy2 = x2+dy2
-                            wkm = (newx2,newy2)
-                            wkmoves.append(wkm)
-                            for wkm in wkmoves: 
-                                if move in move.src_coords and move in move.target_coords:
-                                    threatsow.append(move.src_coords)
-                                    bvalue_after_threats -= 1 *piece.piece_value()
+                xposking = x2
+                yposking = y2
+        for dx2 in range(-1,1):
+            for dx2 in range(-1,1):
+                if dx2 == 0 and dy2 == 0:
+                    continue
+                else:
+                    newx2 = xposking+dx2
+                    newy2 = yposking+dy2
+                    wkm = (newx2,newy2)
+                    wkmoves.append(wkm)
+                    for wkm in wkmoves: 
+                        if move in move.src_coords and move in move.target_coords:
+                            threatsow.append(move.src_coords)
+                            bvalue_after_threats -= 1 *piece.piece_value()
 
                 
 
         total_whitepieces = total_whitepieces - wvalue_after_threats
-        total_blackpieces = total_blackpieces -bvalue_after_threats
+        total_blackpieces = total_blackpieces - bvalue_after_threats
         difference = total_whitepieces - total_blackpieces
         return difference 
         
         #i need to find what kind of pieces surround the king 
 
         
-        def is_known_opening(self, fen_position):
-            if fen_position in self.openings:
-                return True
-            return False
+def is_known_opening(self, fen_position):
+    if fen_position in self.openings:
+        return True
+    return False

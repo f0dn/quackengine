@@ -94,3 +94,39 @@ class Engine:
         if fen_position in self.openings:
             return True
         return False
+    
+    def evaluate_position(self):
+        return 0
+
+    def minimax(self, board, depth, alpha, beta):
+        if depth == 0:
+            return self.evaluate_position(), None
+        possible_moves = board.get_possible_moves()
+        if(board.turn == "w"):
+            max_eval = float('-inf')
+            best_move = None
+            for move in possible_moves:
+                minimax_board = board.copy_board()
+                minimax_board.make_moves(move)
+                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = move
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = float('inf')
+            best_move = None
+            for move in possible_moves:
+                minimax_board = board.copy_board()
+                minimax_board.make_moves(move)
+                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = move
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval, best_move

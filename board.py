@@ -42,7 +42,7 @@ class Board:
         if params[3] == "-":
             pass
         else:
-            self.recent_en_passant_target = tuple[ord(params[3][0]) - ord('a'), int(params[3][1])-1]
+            self.recent_en_passant_target = (ord(params[3][0]) - ord('a'), int(params[3][1])-1)
         self.halfmove_clock = int(params[4])
         self.fullmoves = int(params[5])
 
@@ -160,7 +160,7 @@ class Board:
         king_dirs = queen_dirs
         
         # Determine which color to move
-        my_color = Color.WHITE if self.turn == 'w' else Color.BLACK
+        my_color = self.turn
         
         # Scan board for pieces
         for r in range(8):
@@ -214,27 +214,60 @@ class Board:
 
     def make_moves(self, moves: list[Move]):
         for move in moves:
+            # obtaining square coordinates
             from_col, from_row = move.src_coords
             to_col, to_row = move.target_coords
 
+            # obtaining object at the coordinates
+            moving_piece = self.board[from_row][from_col]
+            target = self.board[to_row][to_col]
+
+            # updating halfmove clock
+            if moving_piece[0] == Piece.PAWN or target is not None:
+                self.halfmove_clock = 0
+            else:
+                self.halfmove_clock += 1
+
+            # updating castling rights
+            if moving_piece[0] == Piece.KING: # if king moved
+                self.castling_avail[moving_piece[1]].clear()
+            if moving_piece[0] == Piece.ROOK: # if rook moved
+                if from_col == 0:
+                    self.castling_avail[moving_piece[1]].discard(Piece.QUEEN)
+                elif from_col == 7:
+                    self.castling_avail[moving_piece[1]].discard(Piece.KING)
+            if target and target[0] == Piece.ROOK: # if rook captured
+                opp = Color.BLACK if moving_piece[1] == Color.WHITE else Color.WHITE
+                if to_col == 0:
+                    self.castling_avail[opp].discard(Piece.QUEEN)
+                elif to_col == 7:
+                    self.castling_avail[opp].discard(Piece.KING)
+
+            # actual movement
             if move.promoted_to: # promotion move
                 color = (self.board[from_row][from_col])[1]
 
                 self.board[from_row][from_col] = None
-                self.board[to_col][to_col] = (move.promoted_to, color)
+                self.board[to_row][to_col] = (move.promoted_to, color)
             else:
-                moving_piece = self.board[from_row][from_col]
-
                 self.board[from_row][from_col] = None
                 self.board[to_row][to_col] = moving_piece
 
-                if moving_piece[0] == Piece.KING and abs(from_col - to_col) == 2: # castling move
+                if moving_piece[0] == Piece.PAWN and abs(from_row - to_row) == 2: # en passant target update
+                    self.recent_en_passant_target = (from_col, (from_row + to_row) // 2)
+                elif moving_piece[0] == Piece.KING and abs(from_col - to_col) == 2: # castling move
                     if (from_col - to_col < 0): # castling short side
                         self.board[from_row][7] = None
                         self.board[to_row][to_col - 1] = (Piece.ROOK, moving_piece[1])
                     else: # castling long side
                         self.board[from_row][0] = None
                         self.board[to_row][to_col + 1] = (Piece.ROOK, moving_piece[1])
+            
+            if self.turn == Color.BLACK: # updating the fullmove clock
+                    self.fullmoves += 1
+            # switch turns
+            self.turn = Color.BLACK if self.turn == Color.WHITE else Color.WHITE
+        
     
     def copy_board(self):
         other = Board(self.to_fen())

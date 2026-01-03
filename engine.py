@@ -96,6 +96,10 @@ class Engine:
         return False
     
     def evaluate_position(self):
+        if self.is_known_opening(self.board.to_fen()) and self.board.board.turn == "w":
+            return float('inf')
+        elif self.is_known_opening(self.board.to_fen()) and self.board.board.turn == "b":
+            return float('-inf')
         return 0
 
     def minimax(self, board, depth, alpha, beta):

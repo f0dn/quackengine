@@ -42,7 +42,7 @@ class Board:
         if params[3] == "-":
             pass
         else:
-            self.recent_en_passant_target = tuple[ord(params[3][0]) - ord('a'), int(params[3][1])-1]
+            self.recent_en_passant_target = (ord(params[3][0]) - ord('a'), int(params[3][1])-1)
         self.halfmove_clock = int(params[4])
         self.fullmoves = int(params[5])
 
@@ -93,7 +93,7 @@ class Board:
         if self.recent_en_passant_target is None:
             fen += " -"
         else:
-            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + (self.recent_en_passant_target[1]+1)
+            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + str(self.recent_en_passant_target[1]+1)
 
         # Fifth Field: halfmove clock
         fen += " " + str(self.halfmove_clock)
@@ -210,7 +210,7 @@ class Board:
         return possible_moves
 
     def make_moves(self, moves: list[Move]):
-        for move in moves:
+        for move in [moves]:
             from_col, from_row = move.src_coords
             to_col, to_row = move.target_coords
 
@@ -236,3 +236,4 @@ class Board:
     def copy_board(self):
         other = Board(self.to_fen())
         return other
+    

@@ -160,7 +160,7 @@ class Board:
         king_dirs = queen_dirs
         
         # Determine which color to move
-        my_color = Color.WHITE if self.turn == 'w' else Color.BLACK
+        my_color = Color.WHITE if self.turn == Color.WHITE else Color.BLACK
         
         # Scan board for pieces
         for r in range(8):

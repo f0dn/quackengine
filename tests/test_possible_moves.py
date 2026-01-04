@@ -2,7 +2,6 @@ from board import Board
 
 def test_pawn_moves():
     board = Board(fen="8/8/8/8/8/8/1P6/8 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
@@ -12,7 +11,6 @@ def test_pawn_moves():
 
 def test_knight_moves():
     board = Board(fen="8/8/8/8/3N4/8/8/8 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
@@ -22,7 +20,6 @@ def test_knight_moves():
 
 def test_bishop_moves():
     board = Board(fen="8/8/8/8/8/8/8/2B5 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
@@ -33,7 +30,6 @@ def test_bishop_moves():
 
 def test_rook_moves():
     board = Board(fen="8/8/8/8/8/8/8/R7 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
@@ -44,7 +40,6 @@ def test_rook_moves():
     assert possible_moves == expected_moves
 def test_queen_moves():
     board = Board(fen="8/8/8/8/3Q4/8/8/8 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
@@ -60,7 +55,6 @@ def test_queen_moves():
 
 def test_king_moves():
     board = Board(fen="8/8/8/8/4K3/8/8/8 w - - 0 1")
-    board.turn = 'w'
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 

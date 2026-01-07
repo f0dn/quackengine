@@ -93,7 +93,7 @@ class Board:
         if self.recent_en_passant_target is None:
             fen += " -"
         else:
-            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + (self.recent_en_passant_target[1]+1)
+            fen += " " + chr(self.recent_en_passant_target[0] + ord('a')) + str(self.recent_en_passant_target[1]+1)
 
         # Fifth Field: halfmove clock
         fen += " " + str(self.halfmove_clock)
@@ -160,7 +160,7 @@ class Board:
         king_dirs = queen_dirs
         
         # Determine which color to move
-        my_color = self.turn
+        my_color = Color.WHITE if self.turn == 'w' else Color.BLACK
         
         # Scan board for pieces
         for r in range(8):
@@ -222,6 +222,12 @@ class Board:
             moving_piece = self.board[from_row][from_col]
             target = self.board[to_row][to_col]
 
+            # checking if en_passant
+            is_en_passant = moving_piece[0] == Piece.PAWN and target is None and from_col != to_col and self.recent_en_passant_target == (to_col, to_row)
+
+            # clear target
+            self.recent_en_passant_target = None
+
             # updating halfmove clock
             if moving_piece[0] == Piece.PAWN or target is not None:
                 self.halfmove_clock = 0
@@ -250,6 +256,9 @@ class Board:
                 self.board[from_row][from_col] = None
                 self.board[to_row][to_col] = (move.promoted_to, color)
             else:
+                if is_en_passant: # en_passant
+                    self.board[from_row][to_col] = None
+                
                 self.board[from_row][from_col] = None
                 self.board[to_row][to_col] = moving_piece
 

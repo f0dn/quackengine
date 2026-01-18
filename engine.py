@@ -8,10 +8,10 @@ class Engine:
         self.options_dict = {}
         self.board = Board(fen)
         
-        # file = open('openings/2moves_v1.epd.txt')
-        # self.openings = set()
-        # for position in file:
-        #     self.openings.add(position)
+        file = open('openings/2moves_v1.epd.txt')
+        self.openings = set()
+        for position in file:
+            self.openings.add(position)
 
     def start(self):
         while True:
@@ -93,6 +93,10 @@ class Engine:
         print(f"option name {option_name} type {type} {formatted_value}")
 
     def evaluate_position(self):
+        if self.is_known_opening(self.board.to_fen()) and self.board.turn == Color.WHITE:
+            return float('inf')
+        elif self.is_known_opening(self.board.to_fen()) and self.board.turn == Color.BLACK:
+            return float('-inf')
         whitepieces = []
         blackpieces = []
         whitepositions = []
@@ -214,7 +218,7 @@ class Engine:
         if depth == 0:
             return self.evaluate_position(), None
         possible_moves = board.get_possible_moves()
-        if(board.turn == "w"):
+        if(board.turn == Color.WHITE):
             max_eval = float('-inf')
             best_move = None
             for move in possible_moves:

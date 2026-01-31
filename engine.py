@@ -275,7 +275,7 @@ class Engine:
             best_move = None
             for move in possible_moves:
                 minimax_board = board.copy_board()
-                minimax_board.make_moves(move)
+                minimax_board.make_moves([move])
                 eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval > max_eval:
                     max_eval = eval
@@ -289,7 +289,7 @@ class Engine:
             best_move = None
             for move in possible_moves:
                 minimax_board = board.copy_board()
-                minimax_board.make_moves(move)
+                minimax_board.make_moves([move])
                 eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval < min_eval:
                     min_eval = eval

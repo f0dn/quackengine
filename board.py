@@ -210,7 +210,7 @@ class Board:
         return possible_moves
 
     def make_moves(self, moves: list[Move]):
-        for move in [moves]:
+        for move in moves:
             from_col, from_row = move.src_coords
             to_col, to_row = move.target_coords
 

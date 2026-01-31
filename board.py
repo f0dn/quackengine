@@ -159,9 +159,6 @@ class Board:
         queen_dirs = bishop_dirs + rook_dirs
         king_dirs = queen_dirs
         
-        # Determine which color to move
-        my_color = Color.WHITE if self.turn == 'w' else Color.BLACK
-        
         # Scan board for pieces
         for r in range(8):
             for c in range(8):
@@ -170,23 +167,23 @@ class Board:
                     continue
                 
                 piece, color = square
-                if color != my_color:
+                if color != self.turn:
                     continue
                 
                 # Dispatch based on piece type
                 if piece == Piece.BISHOP:
-                    add_sliding_moves(r, c, bishop_dirs, my_color)
+                    add_sliding_moves(r, c, bishop_dirs, self.turn)
                 elif piece == Piece.ROOK:
-                    add_sliding_moves(r, c, rook_dirs, my_color)
+                    add_sliding_moves(r, c, rook_dirs, self.turn)
                 elif piece == Piece.QUEEN:
-                    add_sliding_moves(r, c, queen_dirs, my_color)
+                    add_sliding_moves(r, c, queen_dirs, self.turn)
                 elif piece == Piece.KNIGHT:
-                    add_step_moves(r, c, knight_dirs, my_color)
+                    add_step_moves(r, c, knight_dirs, self.turn)
                 elif piece == Piece.KING:
-                    add_step_moves(r, c, king_dirs, my_color)
+                    add_step_moves(r, c, king_dirs, self.turn)
                 elif piece == Piece.PAWN:
                     # Pawn direction depends on color
-                    if my_color == Color.WHITE:
+                    if self.turn == Color.WHITE:
                         forward = 1  # white moves up the board (row increases)
                         start_row = 1  # white pawns start at row 1 (rank 2)
                     else:
@@ -198,7 +195,7 @@ class Board:
                         nr, nc = r + forward, c + dc
                         if on_board(nr, nc):
                             target = board[nr][nc]
-                            if is_opponent(target, my_color):
+                            if is_opponent(target, self.turn):
                                 possible_moves.add(Move(c, r, nc, nr))
                     
                     # Pawn forward move (one square)
@@ -213,8 +210,7 @@ class Board:
         return possible_moves
 
     def make_moves(self, moves: list[Move]):
-        for move in moves:
-            # obtaining square coordinates
+        for move in [moves]:
             from_col, from_row = move.src_coords
             to_col, to_row = move.target_coords
 
@@ -281,3 +277,4 @@ class Board:
     def copy_board(self):
         other = Board(self.to_fen())
         return other
+    

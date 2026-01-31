@@ -5,6 +5,17 @@ class Move:
         self.src_coords = (from_r, from_c)
         self.target_coords = (to_r, to_c)
         self.promoted_to = promoted_to
+    
+    def __eq__(self, other):
+        return (
+            isinstance(other, Move) and
+            self.src_coords == other.src_coords and
+            self.target_coords == other.target_coords and
+            self.promoted_to == other.promoted_to
+        )
+
+    def __hash__(self):
+        return hash((self.src_coords, self.target_coords, self.promoted_to))
 
     @staticmethod
     def from_long_algebraic(move: str):
@@ -27,4 +38,3 @@ class Move:
         if self.promoted_to:
             result += self.promoted_to.value.lower()
         return result
-

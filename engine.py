@@ -2,11 +2,16 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
+import random
+# import threading
+# import time
 
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
-        self.board = Board(fen)
+        self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        # self.searching = False
+        # self.search_thread = None
         
         file = open('openings/2moves_v1.epd.txt')
         self.openings = set()
@@ -23,8 +28,8 @@ class Engine:
 
     def handle_input(self, command: str):
         if(command == "uci"):
-            print("id name quackengine")
-            print("id author project quack")
+            print("id name quackengine", flush=True)
+            print("id author project quack", flush=True)
             #find out what options engine should support
             #engine needs to tell the GUI which parameters can be changed in the engine, example below:
             self.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
@@ -32,9 +37,9 @@ class Engine:
             self.add_options("NalimovCache", "spin", {"default": 1, "min": 1, "max": 32})
             self.add_options("Nullmove", "check", {"default": "true"})
             self.add_options("Style", "combo", {"default": "Normal", "var": ["Solid", "Normal", "Risky"]})
-            print("uciok")
+            print("uciok", flush=True)
         elif(command == "isready"):
-            print("readyok")
+            print("readyok", flush=True)
             #can be sent if engine is calculating, and engine will continue searching after answering
         elif("setoption" in command):
             #should read what GUI set the option to, then engine sets up internal values
@@ -45,24 +50,71 @@ class Engine:
         elif("debug" in command):
             #engine should send additional infos to the GUI, off by default, can be sent anytime
             pass
-        elif("position" in command):
+        elif command.startswith("position"):
             if ("startpos" in command):
                 self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+                rest = command.split("startpos", 1)[1].strip()
             else:
-                start_index = command.find("fen") + 4
-                end_index = command.find("moves") - 1
-                self.board = Board(command[start_index:end_index])
+                fen = command.split("fen", 1)[1].strip()
+                
+                if "moves" in fen:
+                    fen, rest = fen.split("moves", 1)
+                    fen = fen.strip()
+                    rest = rest.strip()
+                else:
+                    rest = ""
+                
+                self.board = Board(fen)
             
-            moves = [Move.from_long_algebraic(move) for move in command[(command.find("moves") + 6):].split(' ')]
-            self.board.make_moves(moves)
+            if rest.startswith("moves"):
+                rest = rest[5:].strip()
+            
+            if rest:
+                moves = [Move.from_long_algebraic(move) for move in rest.split()]
+                self.board.make_moves(moves)
         elif("go" in command):
-            self.calculate_best_move()
             #needs a new thread
             #engine needs to send info about the position
-            pass
+            # if ("infinite" in command):
+            moves = self.board.get_possible_moves()
+
+            if not moves:
+                print("bestmove 0000", flush=True)
+                return
+
+            best_move = random.choice(list(moves))
+
+            depth = 1
+            nodes = len(moves)
+            time_ms = 15
+            cp = 13
+            pv = best_move.to_long_algebraic()
+
+            print(f"info score cp {cp} depth {depth} nodes {nodes} time {time_ms} pv {pv}", flush=True)
+
+            print("bestmove " + best_move.to_long_algebraic(),  flush=True)
+
+            self.board.make_moves([best_move])
+
+                # if not self.searching:
+                #     self.searching = True
+                    
+                #     def info():
+                #         while self.searching:
+                #             moves = self.board.get_possible_moves()
+                #             print(moves)
+                #             time.sleep(0.5)
+
+                #     self.search_thread = threading.Thread(target = info)
+                #     self.search_thread.start()
         elif(command == "stop"):
-            self.calculate_best_move()
-            #possibly ponder as well
+            # self.searching = False
+            
+            # if self.search_thread:
+            #     self.search_thread.join()
+            #     self.search_thread = None
+
+            # print(self.calculate_best_move())
             pass
         elif(command == "ponderhit"):
             #ponder is when engine calculates opponent's next move during opponent's turn
@@ -78,7 +130,7 @@ class Engine:
         full_info_str = "info "
         for type, value in list_of_tuples:
             full_info_str += f"{type} {value} "
-        print(full_info_str)
+        print(full_info_str, flush=True)
     
     def add_options(self, option_name, type, value):
         self.options_dict[option_name] = {"type": type, "value": value} #value would be a dict of default, min, max etc
@@ -90,7 +142,7 @@ class Engine:
             else:
                 parts.append(f"{k} {v}")
         formatted_value = " ".join(parts)
-        print(f"option name {option_name} type {type} {formatted_value}")
+        print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
     def evaluate_position(self):
         if self.is_known_opening(self.board.to_fen()) and self.board.turn == Color.WHITE:
@@ -223,7 +275,7 @@ class Engine:
             best_move = None
             for move in possible_moves:
                 minimax_board = board.copy_board()
-                minimax_board.make_moves(move)
+                minimax_board.make_moves([move])
                 eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval > max_eval:
                     max_eval = eval
@@ -237,7 +289,7 @@ class Engine:
             best_move = None
             for move in possible_moves:
                 minimax_board = board.copy_board()
-                minimax_board.make_moves(move)
+                minimax_board.make_moves([move])
                 eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval < min_eval:
                     min_eval = eval

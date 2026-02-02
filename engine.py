@@ -124,6 +124,62 @@ class Engine:
         for index, piece in enumerate(whitepieces):
             total_whitepieces += piece[0].piece_value()
             total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
+            
+        pawn_value = .1*piece.piece_value()
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                if piece[0] == Piece.PAWN:  
+                friendlypawn = self.board[y][x]
+                    if y = 1:
+                        pawn_value = .1*piece.piece_value()
+                    if y = 2:
+                        pawn_value = .2*piece.piece_value()
+                    if y = 3:
+                        pawn_value = .3*piece.piece_value()
+                    if y = 4:
+                        pawn_value = .4*piece.piece_value()
+                    if y = 5:
+                        pawn_value = .5*piece.piece_value()
+                    if y = 6:
+                        pawn_value = .6*piece.piece_value()
+                    if y = 7:
+                        pawn_value = .7*piece.piece_value()
+                    if y = 8:
+                        pawn_value = .8*piece.piece_value()
+                        for dy1 in range(1,7): #pass pawn
+                            if not move in move.src_coords:
+                                pawn_value = 2*piece.piece_value()
+
+                        for dy1 in range(-1,-7): #second pawn behind first
+                            if move in move.src_coords:
+                                pawn_value = .7*piece.piece_value()
+        # wbishop_formation #double bishop 
+        wbishop_value = 0
+        for wbx in range(len(self.board)):
+            for wby in range(len(self.board[y])):
+                if piece[0] == Piece.BISHOP:
+                    for wbdx in range(-1,1):
+                        for wbdy in range(-1,1):
+                            if wbdx ==0 and wbdy ==0:
+                                continue
+                            else:
+                                if piece[0] == Piece.BISHOP:
+                                    wbishop_value = 45
+        # bbishop_formawtion - double bishop
+            bbishop_value = 0
+            for bbx in range(len(self.board)):
+                for bby in range(len(self.board[y])):
+                    if piece[1] == Piece.BISHOP:
+                        for bbdx in range(-1,1):
+                            for bbdy in range(-1,1):
+                                if bbdx ==0 and bbdy ==0:
+                                    continue
+                                else:
+                                    if piece[1] == Piece.BISHOP:
+                                        bbishop_value = 45
+                        
+        total_whitepieces = total_whitepieces + wbishop_value
+        total_blackpieces = total_blackpieces + bbishop_value
         
         king_safety = self.evaluate_king_safety()
         total_whitepieces = total_whitepieces + king_safety[0]

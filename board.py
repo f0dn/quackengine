@@ -217,25 +217,31 @@ class Board:
         for move in moves:
             from_x, from_y = move.src_coords
             to_x, to_y = move.target_coords
+            from_row, from_col = 7 - from_y, from_x
+            to_row, to_col = 7 - to_y, to_x
 
-            if move.promoted_to: # promotion move
-                color = (self.board[from_x][from_y])[1]
+            moving_piece = self.board[from_row][from_col]
+            if moving_piece is None:
+                continue
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = (move.promoted_to, color)
+            if move.promoted_to:  # promotion move
+                self.board[from_row][from_col] = None
+                self.board[to_row][to_col] = (move.promoted_to, moving_piece[1])
             else:
-                moving_piece = self.board[from_x][from_y]
+                self.board[from_row][from_col] = None
+                self.board[to_row][to_col] = moving_piece
 
-                self.board[from_x][from_y] = None
-                self.board[to_x][to_y] = move.chess_piece
+                if moving_piece[0] == Piece.KING and abs(from_col - to_col) == 2:  # castling move
+                    if to_col > from_col:  # castling short side
+                        rook_from_col = 7
+                        rook_to_col = to_col - 1
+                    else:  # castling long side
+                        rook_from_col = 0
+                        rook_to_col = to_col + 1
 
-                if moving_piece[0] == Piece.KING and abs(from_x - to_x) == 2: # castling move
-                    if (from_x - to_x < 0): # castling short side
-                        self.board[7][from_y] = None
-                        self.board[to_x - 1][to_y] = (Piece.ROOK, moving_piece[1])
-                    else: # castling long side
-                        self.board[0][from_y] = None
-                        self.board[to_x + 1][to_y] = (Piece.ROOK, moving_piece[1])
+                    rook = self.board[from_row][rook_from_col]
+                    self.board[from_row][rook_from_col] = None
+                    self.board[from_row][rook_to_col] = rook if rook is not None else (Piece.ROOK, moving_piece[1])
     
     def copy_board(self):
         other = Board(self.to_fen())

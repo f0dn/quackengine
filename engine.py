@@ -1,8 +1,9 @@
 import chess.syzygy as syzygy
 import board
+import copy
 
 class Engine: 
-    def __init__(self, path, board=board.Board):
+    def __init__(self, board:board.Board, path="endgames"):
         self.options_dict = {}
         self.path = path
         self.board = board
@@ -19,13 +20,13 @@ class Engine:
     def __exit__(self):
         self.tablebase.close()
 
-    def best_move(self):
-        test_board = self.board.copy()
+    def best_endgame_move(self):
+        test_board = copy.deepcopy(self.board)
         possible_moves = test_board.get_possible_moves()
         moves_wdl = {}
 
         for move in possible_moves:
-            test_board = self.board.copy()
+            test_board = copy.deepcopy(self.board)
             test_board.make_moves([move])
 
             # probe the tablebase for WDL value

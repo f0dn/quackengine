@@ -12,10 +12,10 @@ class Engine:
         # self.searching = False
         # self.search_thread = None
         
-        file = open('openings/2moves_v1.epd.txt')
+        # file = open('openings/2moves_v1.epd.txt')
         self.openings = set()
-        for position in file:
-            self.openings.add(position)
+        # for position in file:
+        #     self.openings.add(position)
 
     def start(self):
         while True:
@@ -81,7 +81,7 @@ class Engine:
                 print("bestmove 0000", flush=True)
                 return
 
-            depth = 1
+            depth = 3
             nodes = len(moves)
             time_ms = 15
             cp, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
@@ -91,9 +91,6 @@ class Engine:
 
             best_move = pv[0]
             print("bestmove " + best_move.to_long_algebraic(),  flush=True)
-
-            self.board.make_moves([best_move])
-
                 # if not self.searching:
                 #     self.searching = True
                     

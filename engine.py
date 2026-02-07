@@ -82,8 +82,6 @@ class Engine:
                 print("bestmove 0000", flush=True)
                 return
 
-            best_move = random.choice(list(moves))
-
             depth = 1
             nodes = len(moves)
             time_ms = 15
@@ -92,7 +90,8 @@ class Engine:
 
             print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)
 
-            print("bestmove " + pv[0].to_long_algebraic(),  flush=True)
+            best_move = pv[0]
+            print("bestmove " + best_move.to_long_algebraic(),  flush=True)
 
             self.board.make_moves([best_move])
 

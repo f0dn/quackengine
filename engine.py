@@ -4,7 +4,6 @@ from board import Board
 from move import Move
 import random
 import traceback
-import sys
 # import threading
 # import time
 
@@ -21,7 +20,7 @@ class Engine:
             for position in file:
                 self.openings.add(position)
         except FileNotFoundError:
-            traceback.print_stack()
+            self.openings = set()
 
     def start(self):
         while True:

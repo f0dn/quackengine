@@ -2,7 +2,6 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
-import random
 # import threading
 # import time
 

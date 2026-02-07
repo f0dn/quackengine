@@ -3,7 +3,6 @@ from piece import Piece
 from board import Board
 from move import Move
 import random
-import traceback
 # import threading
 # import time
 

@@ -8,14 +8,17 @@ from move import Move
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
-        self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        self.board = Board(fen)
         # self.searching = False
         # self.search_thread = None
         
-        # file = open('openings/2moves_v1.epd.txt')
-        self.openings = set()
-        # for position in file:
-        #     self.openings.add(position)
+        try:
+            file = open('openings/2moves_v1.epd.txt')
+            self.openings = set()
+            for position in file:
+                self.openings.add(position)
+        except FileNotFoundError:
+            self.openings = set()
 
     def start(self):
         while True:

@@ -2,7 +2,6 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
-import random
 # import threading
 # import time
 
@@ -85,20 +84,16 @@ class Engine:
                 print("bestmove 0000", flush=True)
                 return
 
-            best_move = random.choice(list(moves))
-
-            depth = 1
+            depth = 3
             nodes = len(moves)
             time_ms = 15
-            cp = 13
-            pv = best_move.to_long_algebraic()
+            cp, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
+            pv_str = " ".join(move.to_long_algebraic() for move in pv)
 
-            print(f"info score cp {cp} depth {depth} nodes {nodes} time {time_ms} pv {pv}", flush=True)
+            print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)
 
+            best_move = pv[0]
             print("bestmove " + best_move.to_long_algebraic(),  flush=True)
-
-            self.board.make_moves([best_move])
-
                 # if not self.searching:
                 #     self.searching = True
                     
@@ -271,33 +266,33 @@ class Engine:
 
     def minimax(self, board, depth, alpha, beta):
         if depth == 0:
-            return self.evaluate_position(), None
+            return self.evaluate_position(), []
         possible_moves = board.get_possible_moves()
         if(board.turn == Color.WHITE):
             max_eval = float('-inf')
-            best_move = None
+            best_pv = []
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
-                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval > max_eval:
                     max_eval = eval
-                    best_move = move
+                    best_pv = [move] + child_pv
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
-            return max_eval, best_move
+            return max_eval, best_pv
         else:
             min_eval = float('inf')
-            best_move = None
+            best_pv = []
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
-                eval, _ = self.minimax(minimax_board, depth - 1, alpha, beta)
+                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
                 if eval < min_eval:
                     min_eval = eval
-                    best_move = move
+                    best_pv = [move] + child_pv
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
-            return min_eval, best_move
+            return min_eval, best_pv

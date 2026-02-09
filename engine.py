@@ -143,6 +143,7 @@ class Engine:
         wpass_pawn_value = 0 
         bpass_pawn_value=0
         for y in range(len(self.board.board)):
+            piece = self.board.board[y][x]
             for x in range(len(self.board.board[y])):
                 piece = self.board.board[y][x]
                 if piece is None: 
@@ -192,6 +193,7 @@ class Engine:
         # wbishop_formation #double bishop 
         wbishop_value = 0
         for wbx in range(len(self.board.board)):
+            wpiece = self.board.board[y][x]
             for wby in range(len(self.board.board[y])):
                 wpiece = self.board.board[y][x]
                 if wpiece is None: 

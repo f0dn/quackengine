@@ -142,9 +142,9 @@ class Engine:
         btotal_pawn_value = 0 
         wpass_pawn_value = 0 
         bpass_pawn_value=0
-        piece = self.board.board[y][x]
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
+                piece = self.board.board[y][x]
                 if piece is None: 
                     continue
                 if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
@@ -191,12 +191,12 @@ class Engine:
     def evaluate_bishops(self):            
         # wbishop_formation #double bishop 
         wbishop_value = 0
-        piece = self.board.board[y][x]
         for wbx in range(len(self.board)):
             for wby in range(len(self.board[y])):
-                if piece is None: 
+                wpiece = self.board.board[y][x]
+                if wpiece is None: 
                     continue
-                if piece[0] == Piece.BISHOP:
+                if wpiece[0] == Piece.BISHOP:
                     for wbdx in range(-1,1):
                         for wbdy in range(-1,1):
                             wnew_pawn = self.board.board[y][x]
@@ -206,12 +206,12 @@ class Engine:
                                     wbishop_value += 45
         # bbishop_formawtion - double bishop
             bbishop_value = 0
-            piece = self.board.board[y][x]
             for bbx in range(len(self.board)):
+                bpiece = self.board.board[y][x]
                 for bby in range(len(self.board[y])):
-                    if piece is None: 
+                    if bpiece is None: 
                         continue
-                    if piece[0] == Piece.BISHOP:
+                    if bpiece[0] == Piece.BISHOP:
                         for bbdx in range(-1,1):
                             for bbdy in range(-1,1):
                                 bnew_pawn = self.board.board[y][x]

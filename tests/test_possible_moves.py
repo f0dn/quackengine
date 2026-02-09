@@ -5,7 +5,7 @@ def test_pawn_moves():
 
     possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
 
-    expected_moves = {"b2b3", "b2b4", "c2c3", "c2b3", "c2d3", "c2b1", "c2c1", "c2d1", "c2d2", "c2d3"}
+    expected_moves = {"b2b3", "b2b4", "c2c3", "c2b3", "c2d3", "c2b1", "c2c1", "c2d1", "c2d2"}
 
     assert possible_moves == expected_moves
 

@@ -124,62 +124,8 @@ class Engine:
         for index, piece in enumerate(whitepieces):
             total_whitepieces += piece[0].piece_value()
             total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
-            
-        pawn_value = .1*piece.piece_value()
-        for y in range(len(self.board)):
-            for x in range(len(self.board[y])):
-                if piece[0] == Piece.PAWN:  
-                friendlypawn = self.board[y][x]
-                    if y = 1:
-                        pawn_value = .1*piece.piece_value()
-                    if y = 2:
-                        pawn_value = .2*piece.piece_value()
-                    if y = 3:
-                        pawn_value = .3*piece.piece_value()
-                    if y = 4:
-                        pawn_value = .4*piece.piece_value()
-                    if y = 5:
-                        pawn_value = .5*piece.piece_value()
-                    if y = 6:
-                        pawn_value = .6*piece.piece_value()
-                    if y = 7:
-                        pawn_value = .7*piece.piece_value()
-                    if y = 8:
-                        pawn_value = .8*piece.piece_value()
-                        for dy1 in range(1,7): #pass pawn
-                            if not move in move.src_coords:
-                                pawn_value = 2*piece.piece_value()
-
-                        for dy1 in range(-1,-7): #second pawn behind first
-                            if move in move.src_coords:
-                                pawn_value = .7*piece.piece_value()
-        # wbishop_formation #double bishop 
-        wbishop_value = 0
-        for wbx in range(len(self.board)):
-            for wby in range(len(self.board[y])):
-                if piece[0] == Piece.BISHOP:
-                    for wbdx in range(-1,1):
-                        for wbdy in range(-1,1):
-                            if wbdx ==0 and wbdy ==0:
-                                continue
-                            else:
-                                if piece[0] == Piece.BISHOP:
-                                    wbishop_value = 45
-        # bbishop_formawtion - double bishop
-            bbishop_value = 0
-            for bbx in range(len(self.board)):
-                for bby in range(len(self.board[y])):
-                    if piece[1] == Piece.BISHOP:
-                        for bbdx in range(-1,1):
-                            for bbdy in range(-1,1):
-                                if bbdx ==0 and bbdy ==0:
-                                    continue
-                                else:
-                                    if piece[1] == Piece.BISHOP:
-                                        bbishop_value = 45
-                        
-        total_whitepieces = total_whitepieces + wbishop_value
-        total_blackpieces = total_blackpieces + bbishop_value
+        pawn_formation = self.evaluate_pawn_formation()
+        bishops = self.evaluate_bishops()
         
         king_safety = self.evaluate_king_safety()
         total_whitepieces = total_whitepieces + king_safety[0]
@@ -189,8 +135,94 @@ class Engine:
         total_whitepieces = total_whitepieces + capture_threats[0]
         total_blackpieces = total_blackpieces + capture_threats[1]
 
-        difference = total_whitepieces - total_blackpieces
+        difference = total_whitepieces - total_blackpieces +bishops + pawn_formation
         return difference
+    def evaluate_pawn_formation(self):  
+        wtotal_pawn_value = 0 
+        btotal_pawn_value = 0 
+        wpass_pawn_value = 0 
+        bpass_pawn_value=0
+        piece = self.board.board[y][x]
+        for y in range(len(self.board.board)):
+            for x in range(len(self.board.board[y])):
+                if piece is None: 
+                    continue
+                if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
+                    wpass_pawn = True
+                    wpass_pawn_value = 0 
+                    if (y==0) or (y==1) or (y==2) or (y==3) or (y==4) or (y==5) or (y ==6) or (y==7) or (y==8):
+                        wpawn_value = (y/10)*piece.piece_value()
+                        wtotal_pawn_value +=wpawn_value 
+                        for dy in (1, (7-y)):
+                            wother_pawn = self.board[y][x]
+                            if piece is None: 
+                                continue
+                            if wother_pawn[0] == Piece.PAWN and if wother_pawn[1] == Color.WHITE: 
+                                wpass_pawn = False
+                                wpass_pawn_value -=30
+                                wtotal_pawn_value += wpass_pawn_value
+                                break
+                            else: 
+                                wpass_pawn_value +=100
+                                wtotal_pawn_value +=wpass_pawn_value
+                                break
+                if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
+                    bpass_pawn = True
+                    bpass_pawn_value = 0 
+                    if (y==0) or (y==1) or (y==2) or (y==3) or (y==4) or (y==5) or (y ==6) or (y==7) or (y==8):
+                        bpawn_value = (y/10)*piece.piece_value()
+                        btotal_pawn_value +=bpawn_value 
+                        for dy in (1, (7-y)):
+                            bother_pawn = self.board[y][x]
+                            if piece is None: 
+                                continue
+                            if bother_pawn[0] == Piece.PAWN and if bother_pawn[1] == Color.BLACK: 
+                                bpass_pawn = False
+                                bpass_pawn_value -=30
+                                btotal_pawn_value += bpass_pawn_value
+                                break
+                            else: 
+                                bpass_pawn_value +=100
+                                btotal_pawn_value +=bpass_pawn_value
+                                break
+        difference = wtotal_pawn_value - btotal_pawn_value 
+        return difference                 
+                            
+    def evaluate_bishops(self):            
+        # wbishop_formation #double bishop 
+        wbishop_value = 0
+        piece = self.board.board[y][x]
+        for wbx in range(len(self.board)):
+            for wby in range(len(self.board[y])):
+                if piece is None: 
+                    continue
+                if piece[0] == Piece.BISHOP:
+                    for wbdx in range(-1,1):
+                        for wbdy in range(-1,1):
+                            wnew_pawn = self.board.board[y][x]
+                            if wbdx ==0 and wbdy ==0:
+                                continue
+                            if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
+                                    wbishop_value += 45
+        # bbishop_formawtion - double bishop
+            bbishop_value = 0
+            piece = self.board.board[y][x]
+            for bbx in range(len(self.board)):
+                for bby in range(len(self.board[y])):
+                    if piece is None: 
+                        continue
+                    if piece[0] == Piece.BISHOP:
+                        for bbdx in range(-1,1):
+                            for bbdy in range(-1,1):
+                                bnew_pawn = self.board.board[y][x]
+                                if bbdx ==0 and bbdy ==0:
+                                    continue
+                                if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
+                                    bbishop_value += 45
+        difference = wbishop_value - bbishop_value 
+        return difference 
+    
+        
 
     def evaluate_capture_threats(self):
         #Calculate how threats on the pieces affect the position

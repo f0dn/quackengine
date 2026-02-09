@@ -157,7 +157,7 @@ class Engine:
                             wother_pawn = self.board[y][x]
                             if piece is None: 
                                 continue
-                            if wother_pawn[0] == Piece.PAWN and if wother_pawn[1] == Color.WHITE: 
+                            if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE: 
                                 wpass_pawn = False
                                 wpass_pawn_value -=30
                                 wtotal_pawn_value += wpass_pawn_value
@@ -176,7 +176,7 @@ class Engine:
                             bother_pawn = self.board[y][x]
                             if piece is None: 
                                 continue
-                            if bother_pawn[0] == Piece.PAWN and if bother_pawn[1] == Color.BLACK: 
+                            if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK: 
                                 bpass_pawn = False
                                 bpass_pawn_value -=30
                                 btotal_pawn_value += bpass_pawn_value

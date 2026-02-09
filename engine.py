@@ -191,8 +191,8 @@ class Engine:
     def evaluate_bishops(self):            
         # wbishop_formation #double bishop 
         wbishop_value = 0
-        for wbx in range(len(self.board)):
-            for wby in range(len(self.board[y])):
+        for wbx in range(len(self.board.board)):
+            for wby in range(len(self.board.board[y])):
                 wpiece = self.board.board[y][x]
                 if wpiece is None: 
                     continue
@@ -206,8 +206,8 @@ class Engine:
                                     wbishop_value += 45
         # bbishop_formawtion - double bishop
             bbishop_value = 0
-            for bbx in range(len(self.board)):
-                bpiece = self.board.board[y][x]
+            for bbx in range(len(self.board.board)):
+                bpiece = self.board.board.board[y][x]
                 for bby in range(len(self.board[y])):
                     if bpiece is None: 
                         continue

@@ -143,7 +143,6 @@ class Engine:
         wpass_pawn_value = 0 
         bpass_pawn_value=0
         for y in range(len(self.board.board)):
-            piece = self.board.board[y][x]
             for x in range(len(self.board.board[y])):
                 piece = self.board.board[y][x]
                 if piece is None: 
@@ -192,35 +191,21 @@ class Engine:
     def evaluate_bishops(self):            
         # wbishop_formation #double bishop 
         wbishop_value = 0
-        for wbx in range(len(self.board.board)):
-            wpiece = self.board.board[y][x]
-            for wby in range(len(self.board.board[y])):
-                wpiece = self.board.board[y][x]
-                if wpiece is None: 
-                    continue
-                if wpiece[0] == Piece.BISHOP:
-                    for wbdx in range(-1,1):
-                        for wbdy in range(-1,1):
-                            wnew_pawn = self.board.board[y][x]
-                            if wbdx ==0 and wbdy ==0:
-                                continue
-                            if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
-                                    wbishop_value += 45
+        wpiece = self.board.board[y][x]
+            if wpiece is None: 
+                continue
+            if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
+                wnew_pawn = self.board.board[y][x]
+                if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
+                    wbishop_value += 45
         # bbishop_formawtion - double bishop
-            bbishop_value = 0
-            for bbx in range(len(self.board.board)):
-                bpiece = self.board.board.board[y][x]
-                for bby in range(len(self.board[y])):
-                    if bpiece is None: 
+        bbishop_value = 0
+            if bpiece is None: 
                         continue
-                    if bpiece[0] == Piece.BISHOP:
-                        for bbdx in range(-1,1):
-                            for bbdy in range(-1,1):
-                                bnew_pawn = self.board.board[y][x]
-                                if bbdx ==0 and bbdy ==0:
-                                    continue
-                                if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
-                                    bbishop_value += 45
+                    if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
+                            bnew_pawn = self.board.board[y][x]
+                            if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
+                                bbishop_value += 45
         difference = wbishop_value - bbishop_value 
         return difference 
     

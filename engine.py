@@ -194,18 +194,18 @@ class Engine:
         wpiece = self.board.board[y][x]
         if wpiece is None: 
             continue
-            if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
-                wnew_pawn = self.board.board[y][x]
-                if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
-                    wbishop_value += 45
+        if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
+            wnew_pawn = self.board.board[y][x]
+            if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
+                wbishop_value += 45
         # bbishop_formawtion - double bishop
         bbishop_value = 0
         if bpiece is None: 
             continue
-            if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
-                bnew_pawn = self.board.board[y][x]
-                if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
-                    bbishop_value += 45
+        if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
+            bnew_pawn = self.board.board[y][x]
+            if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
+                bbishop_value += 45
         difference = wbishop_value - bbishop_value 
         return difference 
     

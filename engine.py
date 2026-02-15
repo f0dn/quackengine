@@ -150,14 +150,13 @@ class Engine:
                 if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
                     wpass_pawn = True
                     wpass_pawn_value = 0 
-                    if (y==0) or (y==1) or (y==2) or (y==3) or (y==4) or (y==5) or (y ==6) or (y==7) or (y==8):
-                        wpawn_value = (y/10)*piece[0].piece_value()
-                        wtotal_pawn_value +=wpawn_value 
+                    wtotal_pawn_value +=wpawn_value 
+                    for dx in (-1,1):
                         for dy in (1, (7-y)):
                             wother_pawn = self.board.board[y][x]
                             if piece is None: 
                                 continue
-                            if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE: 
+                            if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
                                 wpass_pawn = False
                                 wpass_pawn_value -=30
                                 wtotal_pawn_value += wpass_pawn_value
@@ -169,14 +168,14 @@ class Engine:
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
-                    if (y==0) or (y==1) or (y==2) or (y==3) or (y==4) or (y==5) or (y ==6) or (y==7) or (y==8):
-                        bpawn_value = (y/10)*piece[0].piece_value()
-                        btotal_pawn_value +=bpawn_value 
+                    bpawn_value = (y/10)*piece[0].piece_value()
+                    btotal_pawn_value +=bpawn_value 
+                    for dx in (-1,1):
                         for dy in (1, (7-y)):
                             bother_pawn = self.board.board[y][x]
                             if piece is None: 
                                 continue
-                            if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK: 
+                            if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                 bpass_pawn = False
                                 bpass_pawn_value -=30
                                 btotal_pawn_value += bpass_pawn_value

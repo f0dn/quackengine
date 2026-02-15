@@ -206,6 +206,7 @@ class Engine:
         bbishop_value = 0
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
+                bpiece = self.board.board[y][x]
                 if bpiece is None: 
                     continue
                 if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:

@@ -126,7 +126,7 @@ class Engine:
             total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
         pawn_formation = self.evaluate_pawn_formation()
         bishops = self.evaluate_bishops()
-        
+    
         king_safety = self.evaluate_king_safety()
         total_whitepieces = total_whitepieces + king_safety[0]
         total_blackpieces = total_blackpieces + king_safety[1]
@@ -191,20 +191,20 @@ class Engine:
         # wbishop_formation #double bishop 
         wbishop_value = 0
         wpiece = self.board.board[y][x]
-            if wpiece is None: 
-                continue
-            if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
-                wnew_pawn = self.board.board[y][x]
-                if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
-                    wbishop_value += 45
+        if wpiece is None: 
+            continue
+        if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
+            wnew_pawn = self.board.board[y][x]
+            if wnew_pawn[0] == Piece.BISHOP and wnew_pawn[1] == Color.WHITE:
+                wbishop_value += 45
         # bbishop_formawtion - double bishop
         bbishop_value = 0
-            if bpiece is None: 
-                        continue
-                    if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
-                            bnew_pawn = self.board.board[y][x]
-                            if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
-                                bbishop_value += 45
+        if bpiece is None: 
+            continue
+        if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
+            bnew_pawn = self.board.board[y][x]
+            if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
+                bbishop_value += 45
         difference = wbishop_value - bbishop_value 
         return difference 
     

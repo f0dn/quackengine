@@ -142,6 +142,7 @@ class Engine:
         btotal_pawn_value = 0 
         wpass_pawn_value = 0 
         bpass_pawn_value=0
+        wpass_pawn = True
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
                 piece = self.board.board[y][x]
@@ -162,10 +163,7 @@ class Engine:
                                 wpass_pawn_value -=30
                                 wtotal_pawn_value += wpass_pawn_value
                                 break
-                            
-                    wpass_pawn_value +=100
-                    wtotal_pawn_value +=wpass_pawn_value
-                    break
+        
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
@@ -177,42 +175,45 @@ class Engine:
                             if piece is None: 
                                 continue
                             if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
-                                bpass_pawn = False
-                                if not bpass_pawn: 
-                                    bpass_pawn_value -=30
-                                    btotal_pawn_value += bpass_pawn_value
-                                    break
-                            else: 
-                                bpass_pawn_value +=100
-                                btotal_pawn_value +=bpass_pawn_value
+                                bpass_pawn = False 
+                                bpass_pawn_value -=30
+                                btotal_pawn_value += bpass_pawn_value
                                 break
+        if wpass_pawn == True:                    
+            wpass_pawn_value +=100
+            wtotal_pawn_value +=wpass_pawn_value 
+        if bpass_pawn == True:            
+            bpass_pawn_value +=100
+            btotal_pawn_value +=bpass_pawn_value
+                                
         difference = wtotal_pawn_value - btotal_pawn_value 
         return difference                 
                             
     def evaluate_bishops(self):            
         # wbishop_formation #double bishop 
         wbishop_value = 0
+        wcounter =0
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
                 wpiece = self.board.board[y][x]
                 if wpiece is None: 
                     continue
                 if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
-                    wbishop_value +=0
-                    if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
-                        wbishop_value += 45
+                    wcounter +=1
+        if wcounter = 2: 
+            wbishop_value += 45
         # bbishop_formawtion - double bishop
         bbishop_value = 0
+        bcounter = 0
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
                 bpiece = self.board.board[y][x]
                 if bpiece is None: 
-                    bbishop_value +=0
                     continue
                 if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
-                    bnew_pawn = self.board.board[y][x]
-                    if bnew_pawn[0] == Piece.BISHOP and bnew_pawn[1] == Color.BLACK:
-                        bbishop_value += 45
+                    bcounter +=1
+        if bcounter = 2: 
+            bbishop_value +=45           
         difference = wbishop_value - bbishop_value 
         return difference 
     

@@ -200,7 +200,7 @@ class Engine:
                     continue
                 if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
                     wcounter +=1
-        if wcounter = 2: 
+        if wcounter == 2: 
             wbishop_value += 45
         # bbishop_formawtion - double bishop
         bbishop_value = 0
@@ -212,7 +212,7 @@ class Engine:
                     continue
                 if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
                     bcounter +=1
-        if bcounter = 2: 
+        if bcounter == 2: 
             bbishop_value +=45           
         difference = wbishop_value - bbishop_value 
         return difference 

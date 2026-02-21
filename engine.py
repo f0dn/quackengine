@@ -94,6 +94,14 @@ class Engine:
 
             best_move = pv[0]
             print("bestmove " + best_move.to_long_algebraic(),  flush=True)
+
+            #print out evals for all moves after 1
+            # current_fen = self.board.to_fen()
+            # for move in list(moves):
+            #     self.board.make_moves([move])
+            #     print(move.to_long_algebraic() +  " " + str(self.evaluate_position()))
+            #     self.board = Board(current_fen)
+
                 # if not self.searching:
                 #     self.searching = True
                     
@@ -266,7 +274,11 @@ class Engine:
 
     def minimax(self, board, depth, alpha, beta):
         if depth == 0:
-            return self.evaluate_position(), []
+            temp = self.board
+            self.board = board
+            eval = self.evaluate_position()
+            self.board = temp
+            return eval, []
         possible_moves = board.get_possible_moves()
         if(board.turn == Color.WHITE):
             max_eval = float('-inf')

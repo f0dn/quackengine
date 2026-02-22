@@ -110,7 +110,7 @@ class Board:
         with a move being encoded in long_algebraic form 'e1e4'
         """
         board = self.board
-        possible_moves = set()
+        possible_moves = list()
         
         # Helper: check if position is on board
         def on_board(r, c):
@@ -135,10 +135,10 @@ class Board:
                 while on_board(nr, nc):
                     target = board[nr][nc]
                     if target is None:
-                        possible_moves.add(Move(c, r, nc, nr))
+                        possible_moves.append(Move(c, r, nc, nr))
                     else:
                         if is_opponent(target, my_color):
-                            possible_moves.add(Move(c, r, nc, nr))
+                            possible_moves.append(Move(c, r, nc, nr))
                         break
                     nr += dr
                     nc += dc
@@ -150,7 +150,7 @@ class Board:
                 if on_board(nr, nc):
                     target = board[nr][nc]
                     if not is_friendly(target, my_color):
-                        possible_moves.add(Move(c, r, nc, nr))
+                        possible_moves.append(Move(c, r, nc, nr))
         
         # Direction definitions
         knight_dirs = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, 2), (1, -2), (2, -1), (2, 1)]
@@ -196,25 +196,25 @@ class Board:
                         if on_board(nr, nc):
                             target = board[nr][nc]
                             if is_opponent(target, self.turn):
-                                possible_moves.add(Move(c, r, nc, nr))
+                                possible_moves.append(Move(c, r, nc, nr))
                     
                     # Pawn forward move (one square)
                     nr = r + forward
                     if on_board(nr, c) and board[nr][c] is None:
-                        possible_moves.add(Move(c, r, c, nr))
+                        possible_moves.append(Move(c, r, c, nr))
                         
                         # Pawn double move from starting position
                         nr2 = nr + forward
                         if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
-                            possible_moves.add(Move(c, r, c, nr2))
-        legal_moves = set()
+                            possible_moves.append(Move(c, r, c, nr2))
+        legal_moves = list()
 
         for move in possible_moves:
             test_board = self.copy_board()
             test_board.make_moves([move])
 
             if not test_board.is_king_in_check(test_board.board, self.turn):
-                legal_moves.add(move)
+                legal_moves.append(move)
 
         return legal_moves
 
@@ -347,8 +347,124 @@ class Board:
                         return True
         return False
         
-    
     def copy_board(self):
         other = Board(self.to_fen())
         return other
+    
+    def evaluate_position(self):
+        # if self.is_known_opening(self.to_fen()) and self.turn == Color.WHITE:
+        #     return float('inf')
+        # elif self.is_known_opening(self.to_fen()) and self.turn == Color.BLACK:
+        #     return float('-inf')
+        whitepieces = []
+        blackpieces = []
+        whitepositions = []
+        blackpositions = []
+        self.white_moves = []
+        self.black_moves = []
+
+        for rowindex, row in enumerate(self.board):
+            for columnindex, piece in enumerate(row): 
+                if piece is None:
+                    continue
+                elif piece[1] == Color.WHITE:
+                    whitepieces.append(piece)
+                    whitepositions.append((rowindex, columnindex))
+                elif piece[1] == Color.BLACK:
+                    blackpieces.append(piece)
+                    blackpositions.append((rowindex, columnindex))
+                else:
+                    pass
+        total_blackpieces = 0
+        total_whitepieces = 0
+        for index, piece in enumerate(blackpieces):
+            total_blackpieces += piece[0].piece_value()
+            total_blackpieces += (piece[0].piece_table())[blackpositions[index][0]][blackpositions[index][1]]
+        for index, piece in enumerate(whitepieces):
+            total_whitepieces += piece[0].piece_value()
+            total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
+        
+        king_safety = self.evaluate_king_safety()
+        total_whitepieces = total_whitepieces + king_safety[0]
+        total_blackpieces = total_blackpieces + king_safety[1]
+
+        capture_threats = self.evaluate_capture_threats()
+        total_whitepieces = total_whitepieces + capture_threats[0]
+        total_blackpieces = total_blackpieces + capture_threats[1]
+
+        difference = total_whitepieces - total_blackpieces
+        return difference
+
+    def evaluate_capture_threats(self):
+        #Calculate how threats on the pieces affect the position
+        #threatsow and threatsob contain all captures (for future implementation and testing)
+        threatsob = []
+        threatsow = []
+        moves = self.get_possible_moves()
+        #move.src_coords and move.target_coords to it's for where it's coming for and wwhere going to. can index into boards
+        # for self.board[move.src_coords[1][move.src_coords[0]]] == Color.White:
+        bvalue_after_threats = 0 
+        wvalue_after_threats = 0 
+        for columnindex, row in enumerate(self.board): 
+            for rowindex, piece in enumerate(row): 
+                if piece is None:
+                    continue
+                elif (self.turn == Color.BLACK) and (piece[1] == Color.WHITE):
+                    for move in moves: 
+                        if move.target_coords == (rowindex, columnindex): 
+                            threatsow.append(move)
+                            wvalue_after_threats -= 0.1 * piece[0].piece_value()     
+                elif (self.turn == Color.WHITE) and (piece[1] == Color.BLACK):
+                    for move in moves: 
+                        if move.target_coords == (rowindex, columnindex): 
+                            threatsob.append(move)
+                            bvalue_after_threats -= 0.1 * piece[0].piece_value()
+        return (wvalue_after_threats, bvalue_after_threats)
+    
+    def evaluate_king_safety(self):
+        #i need to find what kind of pieces surround the king
+        #threatsowk and threatsobk contain all moves restricting king movement (for testing and future implementation)
+        threatsobk = []
+        threatsowk = []
+        bvalue_king_safety = 0 
+        wvalue_king_safety = 0 
+        moves = self.get_possible_moves()
+
+        #Next section calculates the extent to which the king is under threat
+        threat_king_color = Color.WHITE
+        if self.turn == Color.WHITE:
+            threat_king_color = Color.BLACK
+        else:
+            threat_king_color = Color.WHITE
+        kmoves = []
+        xposking = 0
+        yposking = 0
+        for y1 in range(len(self.board)):
+            for x1 in range(len(self.board[y1])):
+                if self.board[y1][x1] is None:
+                    continue
+                elif (self.board[y1][x1][1] == threat_king_color) and (self.board[y1][x1][0] == Piece.KING):
+                    xposking = x1
+                    yposking = y1
+        for dx1 in (-1, 0, 1):
+            for dy1 in (-1, 0, 1):
+                if dx1 == 0 and dy1 == 0:
+                    continue
+                else:
+                    newx1 = xposking + dx1
+                    newy1 = yposking + dy1
+                    if (0 <= newx1 < 8) and (0 <= newy1 < 8):
+                        km = (newx1, newy1)
+                        kmoves.append(km)
+        for move in moves: 
+            for km in kmoves:
+                if move.target_coords == km:
+                    if threat_king_color == Color.BLACK:
+                        threatsobk.append(move)
+                        bvalue_king_safety -= 0.1 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
+                    else:
+                        threatsowk.append(move)
+                        wvalue_king_safety -= 0.1 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
+
+        return (wvalue_king_safety, bvalue_king_safety)
     

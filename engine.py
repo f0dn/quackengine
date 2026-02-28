@@ -155,7 +155,7 @@ class Engine:
                     wtotal_pawn_value +=wpass_pawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
-                            wother_pawn = self.board.board[y+dy][x+dx]
+                            wother_pawn = self.board.board[dy][dx] #changed from y +dy to [dy] because it gave error: list out of range
                             if wother_pawn is None: 
                                 continue
                             if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
@@ -172,8 +172,8 @@ class Engine:
                     btotal_pawn_value +=bpawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
-                            bother_pawn = self.board.board[y+dy][x+dx]
-                            if piece is None: 
+                            bother_pawn = self.board.board[dy][dx]
+                            if bother_pawn is None: 
                                 continue
                             if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                 bpass_pawn = False 

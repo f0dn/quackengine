@@ -155,7 +155,7 @@ class Engine:
                     wtotal_pawn_value +=wpass_pawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
-                            if (y >= 0 and y<=6) and (x>=1 and x<=6):
+                            if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
                                 wother_pawn = self.board.board[y+dy][x+dx] 
                                 if wother_pawn is None: 
                                     continue
@@ -166,32 +166,7 @@ class Engine:
                                     break
                             else:
                                 continue
-                    for dx in (0, 1):
-                        for dy in (1, (7-y)):
-                            if (y>= 0 and y<=6) and (x==0):
-                                wother_pawn = self.board.board[y+dy][x+dx]
-                                if wother_pawn is None:
-                                    continue
-                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
-                                    wpass_pawn = False
-                                    wpass_pawn_value -=30
-                                    wtotal_pawn_value += wpass_pawn_value
-                                    break
-                            else:
-                                continue
-                    for dx in (-1,0):
-                        for dy in (1, (7-y)):
-                            if (y>=0 and y<=6) and (x == 7):
-                                wother_pawn = self.board.board[y+dy][x+dx]
-                                if wother_pawn is None:
-                                    continue
-                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
-                                    wpass_pawn = False
-                                    wpass_pawn_value -=30
-                                    wtotal_pawn_value += wpass_pawn_value
-                                    break
-                            else:
-                                continue
+                    
                     if wpass_pawn:                    
                         wpass_pawn_value +=100                
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
@@ -201,7 +176,7 @@ class Engine:
                     btotal_pawn_value +=bpawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
-                            if (y >= 0 and y<=6) and (x>=1 and x<=6):
+                            if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
                                 bother_pawn = self.board.board[y+dy][x+dx]
                                 if bother_pawn is None: 
                                     continue
@@ -212,28 +187,7 @@ class Engine:
                                     break
                             else:
                                 continue
-                    for dx in (0, 1):
-                        for dy in (1, (7-y)):
-                            if (y>= 0 and y<=6) and (x==0):
-                                bother_pawn = self.board.board[y+dy][x+dx]
-                                if bother_pawn is None:
-                                    continue
-                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK: 
-                                    bpass_pawn = False
-                                    bpass_pawn_value -=30
-                                    btotal_pawn_value += bpass_pawn_value
-                                    break
-                    for dx in (-1,0):
-                        for dy in (1, (7-y)):
-                            if (y>=0 and y<=6) and (x == 7):
-                                bother_pawn = self.board.board[y+dy][x+dx]
-                                if bother_pawn is None:
-                                    continue
-                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK: 
-                                    bpass_pawn = False
-                                    bpass_pawn_value -=30
-                                    btotal_pawn_value += bpass_pawn_value
-                                    break
+                   
                     if bpass_pawn:            
                         bpass_pawn_value +=100
                         btotal_pawn_value +=bpass_pawn_value

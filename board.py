@@ -207,7 +207,16 @@ class Board:
                         nr2 = nr + forward
                         if r == start_row and on_board(nr2, c) and board[nr2][c] is None:
                             possible_moves.add(Move(c, r, c, nr2))
-        return possible_moves
+        legal_moves = set()
+
+        for move in possible_moves:
+            test_board = self.copy_board()
+            test_board.make_moves([move])
+
+            if not test_board.is_king_in_check(test_board.board, self.turn):
+                legal_moves.add(move)
+
+        return legal_moves
 
     def make_moves(self, moves: list[Move]):
         for move in moves:
@@ -272,6 +281,71 @@ class Board:
                     self.fullmoves += 1
             # switch turns
             self.turn = Color.BLACK if self.turn == Color.WHITE else Color.WHITE
+
+    def is_king_in_check(self, board, color):
+        # find king
+        king_r = king_c = None
+        for r in range(8):
+            for c in range(8):
+                sq = board[r][c]
+                if sq and sq[0] == Piece.KING and sq[1] == color:
+                    king_r, king_c = r, c
+                    break
+            if king_r is not None:
+                break
+
+        enemy = Color.BLACK if color == Color.WHITE else Color.WHITE
+
+        def on_board(r, c):
+            return 0 <= r < 8 and 0 <= c < 8
+
+        # check all enemy attacks
+        pawn_dir = 1 if enemy == Color.WHITE else -1
+        for dc in (-1, 1):
+            r, c = king_r + pawn_dir, king_c + dc
+            if on_board(r, c):
+                sq = board[r][c]
+                if sq and sq == (Piece.PAWN, enemy):
+                    return True
+
+        knight_dirs = [(-2,-1),(-2,1),(-1,-2),(-1,2),(1,2),(1,-2),(2,-1),(2,1)]
+        for dr, dc in knight_dirs:
+            r, c = king_r + dr, king_c + dc
+            if on_board(r, c):
+                if board[r][c] == (Piece.KNIGHT, enemy):
+                    return True
+
+        directions = [
+            (-1,0),(1,0),(0,-1),(0,1),
+            (-1,-1),(-1,1),(1,-1),(1,1)
+        ]
+
+        for dr, dc in directions:
+            r, c = king_r + dr, king_c + dc
+            while on_board(r, c):
+                sq = board[r][c]
+                if sq:
+                    p, color = sq
+                    if color == enemy:
+                        if (
+                            (dr == 0 or dc == 0) and p in (Piece.ROOK, Piece.QUEEN) or
+                            (dr != 0 and dc != 0) and p in (Piece.BISHOP, Piece.QUEEN)
+                        ):
+                            return True
+                    break
+                r += dr
+                c += dc
+
+        # king adjacency
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                if dr == dc == 0:
+                    continue
+                r, c = king_r + dr, king_c + dc
+                if on_board(r, c):
+                    if board[r][c] == (Piece.KING, enemy):
+                        return True
+        return False
         
     
     def copy_board(self):

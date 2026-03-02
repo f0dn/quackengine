@@ -12,8 +12,8 @@ class Engine:
         # self.search_thread = None
 
         try:
-            file = open('openings/2moves_v1.epd.txt')
             self.openings = set()
+            file = open('openings/2moves_v1.epd.txt')
             for position in file:
                 self.openings.add(position)
         except FileNotFoundError:
@@ -145,12 +145,7 @@ class Engine:
         formatted_value = " ".join(parts)
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
-    def is_known_opening(self, fen_position):
-        if fen_position in self.openings:
-            return True
-        return False
-
-    def minimax_pruning(self, board, depth, alpha, beta):
+    def minimax(self, board, depth, alpha = float('-inf'), beta = float('inf')):
         if depth == 0:
             return board.evaluate_position(), []
         possible_moves = board.get_possible_moves()
@@ -160,8 +155,8 @@ class Engine:
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
-                eval, child_pv = self.minimax_pruning(minimax_board, depth - 1, alpha, beta)
-                if eval >= max_eval:
+                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval > max_eval:
                     max_eval = eval
                     best_pv = [move] + child_pv
                 alpha = max(alpha, eval)
@@ -174,14 +169,11 @@ class Engine:
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
-                eval, child_pv = self.minimax_pruning(minimax_board, depth - 1, alpha, beta)
-                if eval <= min_eval:
+                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                if eval < min_eval:
                     min_eval = eval
                     best_pv = [move] + child_pv
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
             return min_eval, best_pv
-
-    def minimax(self, board, depth):
-        return self.minimax_pruning(board, depth, float('-inf'), float('inf'))

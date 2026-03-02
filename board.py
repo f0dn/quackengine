@@ -2,7 +2,7 @@ from piece import Color, Piece
 from move import Move
 
 class Board:
-    def __init__(self, fen):
+    def __init__(self, fen, openings = None):
         self.board = [[None for _ in range(8)] for _ in range(8)]
         self.turn = Color.WHITE
         self.castling_avail: dict[Color, set[Piece]] = {Color.BLACK : set(), Color.WHITE: set()}
@@ -467,4 +467,9 @@ class Board:
                         wvalue_king_safety -= 0.1 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
 
         return (wvalue_king_safety, bvalue_king_safety)
+
+    def is_known_opening(self, fen_position):
+        if fen_position in self.openings:
+            return True
+        return False
     

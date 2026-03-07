@@ -91,7 +91,7 @@ class Engine:
 
             if cp == float('-inf'):
                 cp = -100000000
-            else if cp == float('inf'):
+            elif cp == float('inf'):
                 cp = 100000000
             
             print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)

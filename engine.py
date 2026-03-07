@@ -161,8 +161,13 @@ class Engine:
                                     continue
                                 if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
                                     wpass_pawn = False
-                                    wpass_pawn_value -=30
+                                    wpass_pawn_value =0
                                     wtotal_pawn_value += wpass_pawn_value
+                                    break
+                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
+                                    wpass_pawn = False
+                                    wpass_pawn_value -=30
+                                    wtotal_pawn_value +=wpass_pawn_value
                                     break
                             else:
                                 continue
@@ -184,6 +189,12 @@ class Engine:
                                     bpass_pawn = False 
                                     bpass_pawn_value -=30
                                     btotal_pawn_value += bpass_pawn_value
+                                    break
+
+                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
+                                    bpass_pawn = False
+                                    bpass_pawn_value -= 30 
+                                    btotal_pawn_value +=bpass_pawn_value
                                     break
                             else:
                                 continue

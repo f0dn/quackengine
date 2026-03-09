@@ -117,12 +117,15 @@ class Engine:
         start_time = time.time()
         depth = 1
 
-        while not self.stop_event.is_set():
+        while not self.stop_event.is_set():            
             if max_depth is not None and depth > max_depth:
                 break
                 
             score, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
 
+            if self.stop_event.is_set():
+                break
+            
             if not pv:
                 break
             
@@ -291,10 +294,10 @@ class Engine:
         key = board.to_fen()
 
         if key in self.transposition_table:
-            stored_depth, stored_score, stored_move = self.transposition_table[key]
+            stored_depth, stored_score, stored_pv = self.transposition_table[key]
 
             if stored_depth >= depth:
-                return stored_score, [stored_move] if stored_move else []
+                return stored_score, stored_pv[:depth]
         
         possible_moves = board.get_possible_moves()
         if(board.turn == Color.WHITE):
@@ -310,7 +313,7 @@ class Engine:
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
-            self.transposition_table[key] = (depth, max_eval, best_pv[0] if best_pv else None)
+            self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
             min_eval = float('inf')
@@ -325,5 +328,5 @@ class Engine:
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
-            self.transposition_table[key] = (depth, min_eval, best_pv[0] if best_pv else None)
+            self.transposition_table[key] = (depth, min_eval, best_pv)
             return min_eval, best_pv

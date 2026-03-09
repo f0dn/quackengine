@@ -186,9 +186,12 @@ class Board:
                     if self.turn == Color.WHITE:
                         forward = 1  # white moves up the board (row increases)
                         start_row = 1  # white pawns start at row 1 (rank 2)
+                        end_row = 7
                     else:
                         forward = -1   # black moves down the board (row decreases)
                         start_row = 6  # black pawns start at row 6 (rank 7)
+                        end_row = 0
+                    piece_list = [Piece.PAWN, Piece.KNIGHT, Piece.BISHOP, Piece.ROOK, Piece.QUEEN]
                     
                     # Pawn captures (diagonal)
                     for dc in [-1, 1]:
@@ -201,7 +204,11 @@ class Board:
                     # Pawn forward move (one square)
                     nr = r + forward
                     if on_board(nr, c) and board[nr][c] is None:
-                        possible_moves.append(Move(c, r, c, nr))
+                        if nr == end_row:
+                            for piece in piece_list:
+                                possible_moves.append(Move(c, r, c, nr, piece))
+                        else:
+                            possible_moves.append(Move(c, r, c, nr))
                         
                         # Pawn double move from starting position
                         nr2 = nr + forward
@@ -300,9 +307,9 @@ class Board:
             return 0 <= r < 8 and 0 <= c < 8
 
         # check all enemy attacks
-        pawn_dir = 1 if enemy == Color.WHITE else -1
-        for dc in (-1, 1):
-            r, c = king_r + pawn_dir, king_c + dc
+        pawn_dirs = [(-1, 1),(-1,-1)] if enemy == Color.WHITE else [(1,1),(1, -1)]
+        for dr, dc in pawn_dirs:
+            r, c = king_r + dr, king_c + dc
             if on_board(r, c):
                 sq = board[r][c]
                 if sq and sq == (Piece.PAWN, enemy):

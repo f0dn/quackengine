@@ -142,42 +142,44 @@ class Engine:
         btotal_pawn_value = 0 
         wpass_pawn_value = 0 
         bpass_pawn_value=0
-        for y in range(len(self.board.board)):
-            for x in range(len(self.board.board[y])):
-                piece = self.board.board[y][x]
-                if piece is None: 
-                    continue
-                if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
-                    wpass_pawn = True
-                    wpass_pawn_value = 0 
-                    wpawn_value = (y/10)*piece[0].piece_value()
-                    wtotal_pawn_value +=wpawn_value 
-                    wtotal_pawn_value +=wpass_pawn_value 
-                    for dx in (-1,1):
-                        for dy in (1, (7-y)):
-                            if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
-                                wother_pawn = self.board.board[y+dy][x+dx] 
-                                if wother_pawn is None: 
-                                    continue
-                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
-                                    wpass_pawn = False
-                                    wpass_pawn_value =0
-                                    wtotal_pawn_value += wpass_pawn_value
-                                    break
-                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
-                                    wpass_pawn = False
-                                    wpass_pawn_value -=30
-                                    wtotal_pawn_value +=wpass_pawn_value
-                                    break
-                            else:
-                                continue
-                    
+        white = is_friendly(Piece.PAWN, Color.WHITE)
+        if white:
+            for y in range(len(self.board.board)):
+                for x in range(len(self.board.board[y])):
+                    piece = self.board.board[y][x]
+                    if piece is None: 
+                        continue
+                    if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
+                        wpass_pawn = True
+                        wpass_pawn_value = 0 
+                        wpawn_value = (y/10)*piece[0].piece_value()
+                        wtotal_pawn_value +=wpawn_value 
+                        wtotal_pawn_value +=wpass_pawn_value 
+                        for dx in (-1,1):
+                            for dy in (1, (7-y)):
+                                if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
+                                    wother_pawn = self.board.board[y+dy][x+dx] 
+                                    if wother_pawn is None: 
+                                        continue
+                                    if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
+                                        wpass_pawn = False
+                                        wpass_pawn_value =0
+                                        wtotal_pawn_value += wpass_pawn_value
+                                        break
+                                    if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
+                                        wpass_pawn = False
+                                        wpass_pawn_value -=30
+                                        wtotal_pawn_value +=wpass_pawn_value
+                                        break
+                                    else:
+                                        continue
+            
                     if wpass_pawn:                    
-                        wpass_pawn_value +=100                
+                        wpass_pawn_value += (y/10)*piece[0].piece_value()*2               
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
-                    bpawn_value = (y/10)*piece[0].piece_value()
+                    bpawn_value = (y/10)*piece[0].piece_value()*2
                     btotal_pawn_value +=bpawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
@@ -190,7 +192,6 @@ class Engine:
                                     bpass_pawn_value -=30
                                     btotal_pawn_value += bpass_pawn_value
                                     break
-
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
                                     bpass_pawn = False
                                     bpass_pawn_value -= 30 
@@ -200,7 +201,7 @@ class Engine:
                                 continue
                    
                     if bpass_pawn:            
-                        bpass_pawn_value +=100
+                        bpass_pawn_value += (y/10)*piece[0].piece_value()
                         btotal_pawn_value +=bpass_pawn_value
                                 
         difference = wtotal_pawn_value - btotal_pawn_value 

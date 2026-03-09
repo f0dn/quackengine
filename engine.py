@@ -2,15 +2,22 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
-# import threading
-# import time
+import threading
+import time
 
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
         self.board = Board(fen)
-        # self.searching = False
-        # self.search_thread = None
+
+        self.default_depth = 3
+        self.searching = False
+        self.stop_event = threading.Event()
+        self.search_thread = None
+        self.best_move = None
+        self.best_pv = []
+
+        self.transposition_table = {}
         
         try:
             file = open('openings/2moves_v1.epd.txt')
@@ -48,7 +55,7 @@ class Engine:
             pass
         elif(command == "ucinewgame"):
             #when GUI tells engine that is is searching on a game that it hasn't searched on before
-            pass
+            self.transposition_table.clear()
         elif("debug" in command):
             #engine should send additional infos to the GUI, off by default, can be sent anytime
             pass
@@ -75,62 +82,67 @@ class Engine:
                 moves = [Move.from_long_algebraic(move) for move in rest.split()]
                 self.board.make_moves(moves)
         elif("go" in command):
-            #needs a new thread
-            #engine needs to send info about the position
-            # if ("infinite" in command):
-            moves = self.board.get_possible_moves()
-
-            if not moves:
-                print("bestmove 0000", flush=True)
+            if self.searching:
                 return
-
-            depth = 3
-            nodes = len(moves)
-            time_ms = 15
-            cp, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
-            pv_str = " ".join(move.to_long_algebraic() for move in pv)
-
-            print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)
-
-            best_move = pv[0]
-            print("bestmove " + best_move.to_long_algebraic(),  flush=True)
-
-            #print out evals for all moves after 1
-            # current_fen = self.board.to_fen()
-            # for move in list(moves):
-            #     self.board.make_moves([move])
-            #     print(move.to_long_algebraic() +  " " + str(self.evaluate_position()))
-            #     self.board = Board(current_fen)
-
-                # if not self.searching:
-                #     self.searching = True
-                    
-                #     def info():
-                #         while self.searching:
-                #             moves = self.board.get_possible_moves()
-                #             print(moves)
-                #             time.sleep(0.5)
-
-                #     self.search_thread = threading.Thread(target = info)
-                #     self.search_thread.start()
-        elif(command == "stop"):
-            # self.searching = False
             
-            # if self.search_thread:
-            #     self.search_thread.join()
-            #     self.search_thread = None
+            max_depth = None
 
-            # print(self.calculate_best_move())
-            pass
+            parts = command.split()
+            if ("depth" in parts):
+                max_depth = int(parts[parts.index("depth") + 1])
+            elif ("infinite" not in parts):
+                max_depth = self.default_depth
+
+            self.stop_event.clear()
+            self.searching = True
+            self.best_move = None
+            self.best_pv = []
+            
+            self.search_thread = threading.Thread(target=self.search, args=(max_depth,), daemon=True)
+            self.search_thread.start()
+        elif(command == "stop"):
+            if self.searching:
+                self.stop_event.set()
+                self.search_thread.join()
+                self.search_thread = None
+
+                print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
         elif(command == "ponderhit"):
             #ponder is when engine calculates opponent's next move during opponent's turn
             #normal search is when engine calculates its own move during its own turn
             #when user plays expected move, then engine should continue searching but switch from pondering to normal search
             pass
 
-    def calculate_best_move(self):
-        #just best move or also info?
-        pass
+    def search(self, max_depth=None):
+        start_time = time.time()
+        depth = 1
+
+        while not self.stop_event.is_set():            
+            if max_depth is not None and depth > max_depth:
+                break
+                
+            score, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
+
+            if self.stop_event.is_set():
+                break
+            
+            if not pv:
+                break
+            
+            self.best_move = pv[0]
+            self.best_pv = pv
+
+            elapsed = int((time.time() - start_time) * 1000)
+            pv_str = " ".join(move.to_long_algebraic() for move in pv)
+
+            print(f"info depth {depth} score cp {int(score)} time {elapsed} pv {pv_str}", flush=True)
+
+            depth += 1
+        
+        if not self.stop_event.is_set() and self.best_move:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
+        self.searching = False
 
     def format_info(self, list_of_tuples):
         full_info_str = "info "
@@ -273,12 +285,20 @@ class Engine:
         return False
 
     def minimax(self, board, depth, alpha, beta):
+        if self.stop_event.is_set():
+            return 0, []
+        
         if depth == 0:
-            temp = self.board
-            self.board = board
-            eval = self.evaluate_position()
-            self.board = temp
-            return eval, []
+            return self.evaluate_position(), []
+        
+        key = board.to_fen()
+
+        if key in self.transposition_table:
+            stored_depth, stored_score, stored_pv = self.transposition_table[key]
+
+            if stored_depth >= depth:
+                return stored_score, stored_pv[:depth]
+        
         possible_moves = board.get_possible_moves()
         if(board.turn == Color.WHITE):
             max_eval = float('-inf')
@@ -293,6 +313,7 @@ class Engine:
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
             min_eval = float('inf')
@@ -307,4 +328,5 @@ class Engine:
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, min_eval, best_pv)
             return min_eval, best_pv

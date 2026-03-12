@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import List, Optional
 
-class Command:
+class Command(ABC):
      @staticmethod
      @abstractmethod
      def parse(command_str: str) -> "Command":
@@ -132,6 +132,47 @@ class GoCommand(Command):
                 i += 1
 
         return GoCommand(**kwargs)
+    
+class UCICommand(Command):
+    def __init__(self, uci: bool = False):
+        self.uci = uci
+
+    @staticmethod
+    def parse(command_str: str) -> "UCICommand":
+        return UCICommand()
+
+class IsReadyCommand(Command):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def parse(command_str: str) -> "IsReadyCommand":
+        return IsReadyCommand()
+
+class StopCommand(Command):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def parse(command_str: str) -> "StopCommand":
+        return StopCommand()
+    
+class QuitCommand(Command):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def parse(command_str: str) -> "QuitCommand":
+        return QuitCommand()
+    
+class UCINewGameCommand(Command):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def parse(command_str: str) -> "UCINewGameCommand":
+        return UCINewGameCommand()
+
 
 def parse_command(command_str: str) -> Command:
     if not command_str:
@@ -141,7 +182,16 @@ def parse_command(command_str: str) -> Command:
         return PositionCommand.parse(command_str)
     elif command_name == "go":
         return GoCommand.parse(command_str)
-    # Other commands
+    elif command_name == "uci":
+        return UCICommand.parse(command_str)
+    elif command_name == "isready":
+        return IsReadyCommand.parse(command_str)
+    elif command_name == "stop":
+        return StopCommand.parse(command_str)
+    elif command_name == "quit":
+        return QuitCommand.parse(command_str)
+    elif command_name == "ucinewgame":
+        return UCINewGameCommand.parse(command_str)
     else:
         raise ValueError(f"Unknown command: {command_name}")
         

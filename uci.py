@@ -1,22 +1,24 @@
 from abc import abstractmethod, ABC
-from typing import List, Optional
+from typing import List, Optional, Self, Type
+
 
 class Command(ABC):
-     @staticmethod
-     @abstractmethod
-     def parse(command_str: str) -> "Command":
-        pass
-     
+    @classmethod
+    def parse(cls, command_str: str) -> Self:
+        return cls()
+
+
 class PositionCommand(Command):
     def __init__(self, startpos: bool, fen: Optional[str], moves: List[str]):
         self.startpos = startpos
         self.fen = fen
         self.moves = moves
 
-    @staticmethod
-    def parse(command_str: str) -> "PositionCommand":
+    @classmethod
+    def parse(cls, command_str: str) -> Self:
         tokens = command_str.strip().split()
         tokens.pop(0)
+
         startpos = False
         fen = None
         moves = []
@@ -33,12 +35,25 @@ class PositionCommand(Command):
             tokens.pop(0)
             moves = tokens
 
-        return PositionCommand(startpos, fen, moves)
-        
+        return cls(startpos, fen, moves)
+
+
 class GoCommand(Command):
-    def __init__(self, depth: Optional[int] = None, movetime: Optional[int] = None, wtime: Optional[int] = None, btime: Optional[int] = None, 
-                 winc: Optional[int] = None, binc: Optional[int] = None, infinite: bool = False, searchmoves: Optional[List[str]] = None, 
-                 ponder: bool = False, movestogo: Optional[int] = None, nodes: Optional[int] = None, mate: Optional[int] = None):
+    def __init__(
+        self,
+        depth: Optional[int] = None,
+        movetime: Optional[int] = None,
+        wtime: Optional[int] = None,
+        btime: Optional[int] = None,
+        winc: Optional[int] = None,
+        binc: Optional[int] = None,
+        infinite: bool = False,
+        searchmoves: Optional[List[str]] = None,
+        ponder: bool = False,
+        movestogo: Optional[int] = None,
+        nodes: Optional[int] = None,
+        mate: Optional[int] = None,
+    ):
         self.depth = depth
         self.movetime = movetime
         self.wtime = wtime
@@ -52,10 +67,11 @@ class GoCommand(Command):
         self.nodes = nodes
         self.mate = mate
 
-    @staticmethod
-    def parse(command_str: str) -> "GoCommand":
+    @classmethod
+    def parse(cls, command_str: str) -> Self:
         tokens = command_str.strip().split()
         tokens.pop(0)
+
         kwargs = {
             "depth": None,
             "movetime": None,
@@ -71,38 +87,22 @@ class GoCommand(Command):
             "mate": None,
         }
 
-        keywords = ["depth", "movetime", "wtime", "btime", "winc", "binc", "infinite", "searchmoves", "ponder", "movestogo", "nodes", "mate"]
+        keywords = set(kwargs.keys())
 
         i = 0
         while i < len(tokens):
             token = tokens[i]
 
-            if token == "depth":
-                kwargs["depth"] = int(tokens[i + 1])
-                i += 2
-
-            elif token == "movetime":
-                kwargs["movetime"] = int(tokens[i + 1])
-                i += 2
-
-            elif token == "wtime":
-                kwargs["wtime"] = int(tokens[i + 1])
-                i += 2
-
-            elif token == "btime":
-                kwargs["btime"] = int(tokens[i + 1])
-                i += 2
-
-            elif token == "winc":
-                kwargs["winc"] = int(tokens[i + 1])
-                i += 2
-
-            elif token == "binc":
-                kwargs["binc"] = int(tokens[i + 1])
+            if token in {"depth", "movetime", "wtime", "btime", "winc", "binc", "movestogo", "nodes", "mate"}:
+                kwargs[token] = int(tokens[i + 1])
                 i += 2
 
             elif token == "infinite":
                 kwargs["infinite"] = True
+                i += 1
+
+            elif token == "ponder":
+                kwargs["ponder"] = True
                 i += 1
 
             elif token == "searchmoves":
@@ -113,85 +113,51 @@ class GoCommand(Command):
                     i += 1
                 kwargs["searchmoves"] = searchmoves_list
 
-            elif token == "ponder":
-                kwargs["ponder"] = True
-                i += 1
-
-            elif token == "movestogo":
-                kwargs["movestogo"] = (int)(tokens[i + 1])
-                i += 2
-
-            elif token == "nodes":
-                kwargs["nodes"] = (int)(tokens[i + 1])
-                i += 2
-
-            elif token == "mate":
-                kwargs["mate"] = (int)(tokens[i + 1])
-                i += 2
             else:
                 i += 1
 
-        return GoCommand(**kwargs)
-    
-class UCICommand(Command):
-    def __init__(self, uci: bool = False):
-        self.uci = uci
+        return cls(**kwargs)
 
-    @staticmethod
-    def parse(command_str: str) -> "UCICommand":
-        return UCICommand()
+
+class UCICommand(Command):
+    pass
+
 
 class IsReadyCommand(Command):
-    def __init__(self):
-        pass
+    pass
 
-    @staticmethod
-    def parse(command_str: str) -> "IsReadyCommand":
-        return IsReadyCommand()
 
 class StopCommand(Command):
-    def __init__(self):
-        pass
+    pass
 
-    @staticmethod
-    def parse(command_str: str) -> "StopCommand":
-        return StopCommand()
-    
+
 class QuitCommand(Command):
-    def __init__(self):
-        pass
+    pass
 
-    @staticmethod
-    def parse(command_str: str) -> "QuitCommand":
-        return QuitCommand()
-    
+
 class UCINewGameCommand(Command):
-    def __init__(self):
-        pass
+    pass
 
-    @staticmethod
-    def parse(command_str: str) -> "UCINewGameCommand":
-        return UCINewGameCommand()
+
+COMMAND_MAP: dict[str, Type[Command]] = {
+    "position": PositionCommand,
+    "go": GoCommand,
+    "uci": UCICommand,
+    "isready": IsReadyCommand,
+    "stop": StopCommand,
+    "quit": QuitCommand,
+    "ucinewgame": UCINewGameCommand,
+}
 
 
 def parse_command(command_str: str) -> Command:
     if not command_str:
         raise ValueError("Empty command string")
+
     command_name = command_str.strip().split()[0]
-    if command_name == "position":
-        return PositionCommand.parse(command_str)
-    elif command_name == "go":
-        return GoCommand.parse(command_str)
-    elif command_name == "uci":
-        return UCICommand.parse(command_str)
-    elif command_name == "isready":
-        return IsReadyCommand.parse(command_str)
-    elif command_name == "stop":
-        return StopCommand.parse(command_str)
-    elif command_name == "quit":
-        return QuitCommand.parse(command_str)
-    elif command_name == "ucinewgame":
-        return UCINewGameCommand.parse(command_str)
-    else:
+
+    command_cls = COMMAND_MAP.get(command_name)
+    if not command_cls:
         raise ValueError(f"Unknown command: {command_name}")
-        
+
+    return command_cls.parse(command_str)

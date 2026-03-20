@@ -1,8 +1,7 @@
-from abc import abstractmethod, ABC
 from typing import List, Optional, Self, Type
 
 
-class Command(ABC):
+class Command():
     @classmethod
     def parse(cls, command_str: str) -> Self:
         return cls()

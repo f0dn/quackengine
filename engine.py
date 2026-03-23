@@ -177,7 +177,7 @@ class Engine:
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
-                    bpawn_value = (y/10)*piece[0].piece_value()
+                    bpawn_value = ((7-y)/10)*piece[0].piece_value()
                     btotal_pawn_value +=bpawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):

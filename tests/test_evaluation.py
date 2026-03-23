@@ -73,12 +73,8 @@ def test_king_safety():
     #assert engine.evaluate_king_safety() is None
     
 def test_evaluate_pawn_formation():
-    engine = Engine("rnbqkbnr/pp2pppp/2p5/8/2pP4/4P3/PP3PPP/RNBQKBNR w KQkq - 0 4")
-    assert engine.evaluate_pawn_formation()
-    engine = Engine("r5nr/pp1b2k1/2pPp2p/4P1bQ/2P5/3B4/PP3PPP/R3K2R w KQ - 1 18")
-    assert engine.evaluate_pawn_formation()
-    engine = Engine("8/5ppk/7p/1Q6/8/2N2b1n/PP3P1P/6K1 w - - 1 30")
-    assert engine.evaluate_pawn_formation()
+    engine = Engine("1r1r2k1/p4pb1/2Bp1np1/q3p1Bp/4P3/2N2Q2/PP3PPP/1R1R2K1 b KQkq - 0 1")
+    assert engine.evaluate_pawn_formation() == -600
     
 def test_evaluate_bishops():
     engine = Engine("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
@@ -86,4 +82,8 @@ def test_evaluate_bishops():
     engine = Engine("rnbqk2r/ppp3pp/3p1p1n/4p3/1bB1P3/3P1P2/PPP3PP/RN1QK1NR b KQkq - 0 1")
     assert engine.evaluate_bishops() == -45
     engine = Engine("rn1qk1nr/pp2p2p/7b/2ppNpp1/4PP2/8/PPPP2PP/RNBQKB1R w KQkq - 0 1")
+    assert engine.evaluate_bishops() == 45
+    engine = Engine("rnbqkbnr/p3pppp/2p5/1p6/P1pP4/4P3/1P3PPP/RNBQKBNR b KQkq - 0 1")
+    assert engine.evaluate_bishops() == 0
+    engine = Engine("1r1r2k1/p4pb1/2Bp1np1/q3p1Bp/4P3/2N2Q2/PP3PPP/1R1R2K1 b KQkq - 0 1")
     assert engine.evaluate_bishops() == 45

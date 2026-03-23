@@ -9,6 +9,9 @@ class Board:
         self.recent_en_passant_target: tuple[int, int] | None = None
         self.halfmove_clock = 0
         self.fullmoves = 1
+        if openings is None:
+            openings = set()
+        self.openings = openings
 
         row = 0
         col = 7
@@ -191,7 +194,7 @@ class Board:
                         forward = -1   # black moves down the board (row decreases)
                         start_row = 6  # black pawns start at row 6 (rank 7)
                         end_row = 0
-                    piece_list = [Piece.PAWN, Piece.KNIGHT, Piece.BISHOP, Piece.ROOK, Piece.QUEEN]
+                    piece_list = [Piece.KNIGHT, Piece.BISHOP, Piece.ROOK, Piece.QUEEN]
                     
                     # Pawn captures (diagonal)
                     for dc in [-1, 1]:

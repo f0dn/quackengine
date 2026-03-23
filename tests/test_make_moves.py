@@ -98,7 +98,7 @@ def test_both_half_revoke(): # continues previous by revoking castling on white 
 
     assert board.to_fen() == result_board.to_fen()
 
-def test_legal_king_move(): #
+def test_king_in_check(): #
     board = Board("2b2bnr/pp1pk1pp/5p2/q7/1n5B/2p2N2/P3PPPP/R2QKB1R w KQ - 0 13")
     board.make_moves([Move.from_long_algebraic("e1d2")])
     assert board.is_king_in_check(board.board, Color.WHITE)

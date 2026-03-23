@@ -1,23 +1,19 @@
 from piece import Color
 from board import Board
 from move import Move
-# import threading
-# import time
 
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
-        self.options_dict = {}
-        self.board = Board(fen)
-        # self.searching = False
-        # self.search_thread = None
-
+        openings = set()
         try:
-            self.openings = set()
             file = open('openings/2moves_v1.epd.txt')
             for position in file:
-                self.openings.add(position)
+                openings.add(position)
         except FileNotFoundError:
-            self.openings = set()
+            pass
+
+        self.options_dict = {}
+        self.board = Board(fen, openings)
 
     def start(self):
         while True:
@@ -74,9 +70,6 @@ class Engine:
                 moves = [Move.from_long_algebraic(move) for move in rest.split()]
                 self.board.make_moves(moves)
         elif("go" in command):
-            #needs a new thread
-            #engine needs to send info about the position
-            # if ("infinite" in command):
             moves = self.board.get_possible_moves()
 
             if not moves:
@@ -86,7 +79,7 @@ class Engine:
             depth = 2
             nodes = len(moves)
             time_ms = 15
-            cp, pv = self.minimax(self.board, depth)
+            cp, pv = self.minimax(depth)
             pv_str = " ".join(move.to_long_algebraic() for move in pv)
 
             if cp == float('-inf'):
@@ -125,17 +118,18 @@ class Engine:
         formatted_value = " ".join(parts)
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
-    def minimax(self, board, depth, alpha = float('-inf'), beta = float('inf')):
+    def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
         if depth == 0:
-            return board.evaluate_position(), []
-        possible_moves = board.get_possible_moves()
-        if(board.turn == Color.WHITE):
+            return self.board.evaluate_position(), []
+        possible_moves = self.board.get_possible_moves()
+        if(self.board.turn == Color.WHITE):
             max_eval = float('-inf')
             best_pv = []
             for move in possible_moves:
-                minimax_board = board.copy_board()
-                minimax_board.make_moves([move])
-                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                old_board = self.board.copy_board()
+                self.board.make_moves([move])
+                eval, child_pv = self.minimax(depth-1, alpha, beta)
+                self.board = old_board
                 if eval > max_eval:
                     max_eval = eval
                     best_pv = [move] + child_pv
@@ -147,9 +141,10 @@ class Engine:
             min_eval = float('inf')
             best_pv = []
             for move in possible_moves:
-                minimax_board = board.copy_board()
-                minimax_board.make_moves([move])
-                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                old_board = self.board.copy_board()
+                self.board.make_moves([move])
+                eval, child_pv = self.minimax(depth-1, alpha, beta)
+                self.board = old_board
                 if eval < min_eval:
                     min_eval = eval
                     best_pv = [move] + child_pv

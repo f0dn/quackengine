@@ -138,6 +138,43 @@ class UCINewGameCommand(Command):
     pass
 
 
+class OptionsCommand(Command):
+    def __init__(self, name: str, value: Optional[str] = None):
+        self.name = name
+        self.value = value
+
+    @classmethod
+    def parse(cls, command_str: str) -> Self:
+        tokens = command_str.strip().split()
+        tokens.pop(0)
+
+        name = None
+        value = None
+
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
+
+            if token == "name":
+                i += 1
+                name_tokens = []
+                while i < len(tokens) and tokens[i] != "value":
+                    name_tokens.append(tokens[i])
+                    i += 1
+                name = " ".join(name_tokens)
+
+            elif token == "value":
+                i += 1
+                value_tokens = tokens[i:]
+                value = " ".join(value_tokens)
+                break
+
+            else:
+                i += 1
+
+        return cls(name, value)
+
+
 COMMAND_MAP: dict[str, Type[Command]] = {
     "position": PositionCommand,
     "go": GoCommand,
@@ -146,6 +183,7 @@ COMMAND_MAP: dict[str, Type[Command]] = {
     "stop": StopCommand,
     "quit": QuitCommand,
     "ucinewgame": UCINewGameCommand,
+    "setoption": OptionsCommand
 }
 
 

@@ -2,6 +2,7 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
+from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, OptionsCommand, UCINewGameCommand, StopCommand
 # import threading
 # import time
 
@@ -9,7 +10,8 @@ class Engine:
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
         self.board = Board(fen)
-        # self.searching = False
+        self.searching = False
+        self.stop_requested = False
         # self.search_thread = None
         
         try:
@@ -28,97 +30,71 @@ class Engine:
             else:
                 self.handle_input(user_input)
 
-    def handle_input(self, command: str):
-        if(command == "uci"):
+    def handle_input(self, command_str: str):
+        cmd = parse_command(command_str)
+
+        if isinstance(cmd, UCICommand):
             print("id name quackengine", flush=True)
             print("id author project quack", flush=True)
-            #find out what options engine should support
-            #engine needs to tell the GUI which parameters can be changed in the engine, example below:
+
             self.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
             self.add_options("NalimovPath", "string", {"default": "<empty>"})
             self.add_options("NalimovCache", "spin", {"default": 1, "min": 1, "max": 32})
             self.add_options("Nullmove", "check", {"default": "true"})
             self.add_options("Style", "combo", {"default": "Normal", "var": ["Solid", "Normal", "Risky"]})
+
             print("uciok", flush=True)
-        elif(command == "isready"):
+
+        elif isinstance(cmd, IsReadyCommand):
             print("readyok", flush=True)
-            #can be sent if engine is calculating, and engine will continue searching after answering
-        elif("setoption" in command):
-            #should read what GUI set the option to, then engine sets up internal values
-            pass
-        elif(command == "ucinewgame"):
-            #when GUI tells engine that is is searching on a game that it hasn't searched on before
-            pass
-        elif("debug" in command):
-            #engine should send additional infos to the GUI, off by default, can be sent anytime
-            pass
-        elif command.startswith("position"):
-            if ("startpos" in command):
+
+        elif isinstance(cmd, UCINewGameCommand):
+            self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+
+        elif isinstance(cmd, PositionCommand):
+            if cmd.startpos:
                 self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-                rest = command.split("startpos", 1)[1].strip()
-            else:
-                fen = command.split("fen", 1)[1].strip()
-                
-                if "moves" in fen:
-                    fen, rest = fen.split("moves", 1)
-                    fen = fen.strip()
-                    rest = rest.strip()
-                else:
-                    rest = ""
-                
-                self.board = Board(fen)
-            
-            if rest.startswith("moves"):
-                rest = rest[5:].strip()
-            
-            if rest:
-                moves = [Move.from_long_algebraic(move) for move in rest.split()]
+            elif cmd.fen:
+                self.board = Board(cmd.fen)
+
+            if cmd.moves:
+                moves = [Move.from_long_algebraic(m) for m in cmd.moves]
                 self.board.make_moves(moves)
-        elif("go" in command):
-            #needs a new thread
-            #engine needs to send info about the position
-            # if ("infinite" in command):
+
+        elif isinstance(cmd, GoCommand):
+            self.stop_requested = False
+            self.searching = True
+
             moves = self.board.get_possible_moves()
 
             if not moves:
                 print("bestmove 0000", flush=True)
                 return
 
-            depth = 3
-            nodes = len(moves)
-            time_ms = 15
+            depth = cmd.depth if cmd.depth else 3
+
             cp, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
+
+            if not pv:
+                print("bestmove 0000", flush=True)
+                return
+
             pv_str = " ".join(move.to_long_algebraic() for move in pv)
 
-            print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)
+            print(f"info score cp {int(cp)} depth {depth} pv {pv_str}", flush=True)
+            print("bestmove " + pv[0].to_long_algebraic(), flush=True)
 
-            best_move = pv[0]
-            print("bestmove " + best_move.to_long_algebraic(),  flush=True)
-                # if not self.searching:
-                #     self.searching = True
-                    
-                #     def info():
-                #         while self.searching:
-                #             moves = self.board.get_possible_moves()
-                #             print(moves)
-                #             time.sleep(0.5)
+            self.searching = False
 
-                #     self.search_thread = threading.Thread(target = info)
-                #     self.search_thread.start()
-        elif(command == "stop"):
-            # self.searching = False
-            
-            # if self.search_thread:
-            #     self.search_thread.join()
-            #     self.search_thread = None
+        elif isinstance(cmd, StopCommand):
+            self.stop_requested = True
+            self.searching = False
 
-            # print(self.calculate_best_move())
-            pass
-        elif(command == "ponderhit"):
-            #ponder is when engine calculates opponent's next move during opponent's turn
-            #normal search is when engine calculates its own move during its own turn
-            #when user plays expected move, then engine should continue searching but switch from pondering to normal search
-            pass
+        elif isinstance(cmd, OptionsCommand):
+            self.options_dict[cmd.name] = cmd.value
+
+        elif isinstance(cmd, QuitCommand):
+            exit()
 
     def calculate_best_move(self):
         #just best move or also info?
@@ -265,6 +241,9 @@ class Engine:
         return False
 
     def minimax(self, board, depth, alpha, beta):
+        if self.stop_requested:
+            return 0, []
+        
         if depth == 0:
             return self.evaluate_position(), []
         possible_moves = board.get_possible_moves()

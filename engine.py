@@ -137,11 +137,9 @@ class Engine:
 
         difference = total_whitepieces - total_blackpieces +bishops + pawn_formation
         return difference
-    def evaluate_pawn_formation(self, board):  
+    def evaluate_pawn_formation(self):  
         wtotal_pawn_value = 0 
         btotal_pawn_value = 0 
-        wpass_pawn_value = 0 
-        bpass_pawn_value=0
         for y in range(len(self.board.board)):
             for x in range(len(self.board.board[y])):
                 piece = self.board.board[y][x]
@@ -152,7 +150,6 @@ class Engine:
                     wpass_pawn_value = 0 
                     wpawn_value = (y/10)*piece[0].piece_value()
                     wtotal_pawn_value +=wpawn_value 
-                    wtotal_pawn_value +=wpass_pawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
                             if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
@@ -162,18 +159,18 @@ class Engine:
                                 if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
                                     wpass_pawn = False
                                     wpass_pawn_value =0
-                                    wtotal_pawn_value += wpass_pawn_value
                                     break
                                 if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
-                                    wpass_pawn = False
-                                    wpass_pawn_value -=30
+                                    wpass_pawn = True
+                                    wpass_pawn_value -=15
                                     wtotal_pawn_value +=wpass_pawn_value
                                     break
                             else:
                                 continue
                     
                     if wpass_pawn:                    
-                        wpass_pawn_value +=100                
+                        wpass_pawn_value +=100  
+                        wtotal_pawn_value += wpass_pawn_value              
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
@@ -187,13 +184,12 @@ class Engine:
                                     continue
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                     bpass_pawn = False 
-                                    bpass_pawn_value -=30
-                                    btotal_pawn_value += bpass_pawn_value
+                                    bpass_pawn_value = 0 
                                     break
 
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
-                                    bpass_pawn = False
-                                    bpass_pawn_value -= 30 
+                                    bpass_pawn = True
+                                    bpass_pawn_value -= 15 
                                     btotal_pawn_value +=bpass_pawn_value
                                     break
                             else:

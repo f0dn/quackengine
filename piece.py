@@ -11,6 +11,7 @@ class Piece(Enum):
     ROOK = 'R'
     QUEEN = 'Q'
     KING = 'K'
+    
     def piece_value(self):
         if self == Piece.PAWN:
             return 100
@@ -24,6 +25,7 @@ class Piece(Enum):
             return 900 
         if self == Piece.KING:
             return 10000000000000
+    
     def piece_table(self):
         if self == Piece.PAWN:
             pawn_table = [

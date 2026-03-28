@@ -2,11 +2,19 @@ from piece import Color, Piece
 from move import Move
 
 class Board:
-    def __init__(self, fen, openings = None):
+    board: list[list[tuple[Piece, Color] | None]]
+    turn: Color
+    castling_avail: dict[Color, set[Piece]]
+    recent_en_passant_target: tuple[int, int] | None
+    halfmove_clock: int
+    fullmoves: int
+    openings: set | None
+
+    def __init__(self, fen: str, openings = None):
         self.board = [[None for _ in range(8)] for _ in range(8)]
         self.turn = Color.WHITE
-        self.castling_avail: dict[Color, set[Piece]] = {Color.BLACK : set(), Color.WHITE: set()}
-        self.recent_en_passant_target: tuple[int, int] | None = None
+        self.castling_avail = {Color.BLACK : set(), Color.WHITE: set()}
+        self.recent_en_passant_target = None
         self.halfmove_clock = 0
         self.fullmoves = 1
         if openings is None:
@@ -116,23 +124,23 @@ class Board:
         possible_moves = list()
         
         # Helper: check if position is on board
-        def on_board(r, c):
+        def on_board(r: int, c: int):
             return 0 <= r < 8 and 0 <= c < 8
 
         # Helper: check if square is opponent's piece
-        def is_opponent(square, my_color):
+        def is_opponent(square: tuple[Piece, Color] | None, my_color: Color):
             if square is None:
                 return False
             return square[1] != my_color
         
         # Helper: check if square is friendly piece
-        def is_friendly(square, my_color):
+        def is_friendly(square: tuple[Piece, Color] | None, my_color: Color):
             if square is None:
                 return False
             return square[1] == my_color
         
         # Helper: add sliding moves (bishop/rook/queen)
-        def add_sliding_moves(r, c, directions, my_color):
+        def add_sliding_moves(r: int, c: int, directions: list[tuple[int, int]], my_color: Color):
             for dr, dc in directions:
                 nr, nc = r + dr, c + dc
                 while on_board(nr, nc):
@@ -147,7 +155,7 @@ class Board:
                     nc += dc
         
         # Helper: add single-step moves (knight/king)
-        def add_step_moves(r, c, directions, my_color):
+        def add_step_moves(r: int, c: int, directions: list[tuple[int, int]], my_color: Color):
             for dr, dc in directions:
                 nr, nc = r + dr, c + dc
                 if on_board(nr, nc):
@@ -292,7 +300,7 @@ class Board:
             # switch turns
             self.turn = Color.BLACK if self.turn == Color.WHITE else Color.WHITE
 
-    def is_king_in_check(self, board, color):
+    def is_king_in_check(self, board: list[list[tuple[Piece, Color] | None]], color: Color):
         # find king
         king_r = king_c = None
         for r in range(8):
@@ -306,7 +314,7 @@ class Board:
 
         enemy = Color.BLACK if color == Color.WHITE else Color.WHITE
 
-        def on_board(r, c):
+        def on_board(r: int, c: int):
             return 0 <= r < 8 and 0 <= c < 8
 
         # check all enemy attacks
@@ -362,10 +370,10 @@ class Board:
         return other
     
     def evaluate_position(self):
-        # if self.is_known_opening(self.to_fen()) and self.turn == Color.WHITE:
-        #     return float('inf')
-        # elif self.is_known_opening(self.to_fen()) and self.turn == Color.BLACK:
-        #     return float('-inf')
+        if self.is_known_opening(self.to_fen()) and self.turn == Color.WHITE:
+            return float('inf')
+        elif self.is_known_opening(self.to_fen()) and self.turn == Color.BLACK:
+            return float('-inf')
         whitepieces = []
         blackpieces = []
         whitepositions = []
@@ -393,7 +401,9 @@ class Board:
         for index, piece in enumerate(whitepieces):
             total_whitepieces += piece[0].piece_value()
             total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
-        
+        pawn_formation = self.evaluate_pawn_formation()
+        bishops = self.evaluate_bishops()
+    
         king_safety = self.evaluate_king_safety()
         total_whitepieces = total_whitepieces + king_safety[0]
         total_blackpieces = total_blackpieces + king_safety[1]
@@ -402,8 +412,105 @@ class Board:
         total_whitepieces = total_whitepieces + capture_threats[0]
         total_blackpieces = total_blackpieces + capture_threats[1]
 
-        difference = total_whitepieces - total_blackpieces
+        difference = total_whitepieces - total_blackpieces +bishops + pawn_formation
         return difference
+    
+    def evaluate_pawn_formation(self):  
+        wtotal_pawn_value = 0 
+        btotal_pawn_value = 0 
+        wpass_pawn_value = 0 
+        bpass_pawn_value=0
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                piece = self.board[y][x]
+                if piece is None: 
+                    continue
+                if piece[0] == Piece.PAWN and piece[1] == Color.WHITE:  
+                    wpass_pawn = True
+                    wpass_pawn_value = 0 
+                    wpawn_value = (y/10)*piece[0].piece_value()
+                    wtotal_pawn_value +=wpawn_value 
+                    wtotal_pawn_value +=wpass_pawn_value 
+                    for dx in (-1,1):
+                        for dy in (1, (7-y)):
+                            if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
+                                wother_pawn = self.board[y+dy][x+dx] 
+                                if wother_pawn is None: 
+                                    continue
+                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
+                                    wpass_pawn = False
+                                    wpass_pawn_value =0
+                                    wtotal_pawn_value += wpass_pawn_value
+                                    break
+                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
+                                    wpass_pawn = False
+                                    wpass_pawn_value -=30
+                                    wtotal_pawn_value +=wpass_pawn_value
+                                    break
+                            else:
+                                continue
+                    
+                    if wpass_pawn:                    
+                        wpass_pawn_value +=100                
+                if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
+                    bpass_pawn = True
+                    bpass_pawn_value = 0 
+                    bpawn_value = ((7-y)/10)*piece[0].piece_value()
+                    btotal_pawn_value +=bpawn_value 
+                    for dx in (-1,1):
+                        for dy in (1, (7-y)):
+                            if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
+                                bother_pawn = self.board[y+dy][x+dx]
+                                if bother_pawn is None: 
+                                    continue
+                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
+                                    bpass_pawn = False 
+                                    bpass_pawn_value -=30
+                                    btotal_pawn_value += bpass_pawn_value
+                                    break
+
+                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
+                                    bpass_pawn = False
+                                    bpass_pawn_value -= 30 
+                                    btotal_pawn_value +=bpass_pawn_value
+                                    break
+                            else:
+                                continue
+                   
+                    if bpass_pawn:            
+                        bpass_pawn_value +=100
+                        btotal_pawn_value +=bpass_pawn_value
+                                
+        difference = wtotal_pawn_value - btotal_pawn_value 
+        return difference 
+                            
+    def evaluate_bishops(self):            
+        # wbishop_formation #double bishop 
+        wbishop_value = 0
+        wcounter =0
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                wpiece = self.board[y][x]
+                if wpiece is None: 
+                    continue
+                if wpiece[0] == Piece.BISHOP and wpiece[1] == Color.WHITE:
+                    wcounter +=1
+        if wcounter == 2: 
+            wbishop_value += 45
+        # bbishop_formawtion - double bishop
+        bbishop_value = 0
+        bcounter = 0
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                bpiece = self.board[y][x]
+                if bpiece is None: 
+                    continue
+                if bpiece[0] == Piece.BISHOP and bpiece[1] == Color.BLACK:
+                    bcounter +=1
+        if bcounter == 2: 
+            bbishop_value +=45           
+        difference = wbishop_value - bbishop_value 
+        return difference 
 
     def evaluate_capture_threats(self):
         #Calculate how threats on the pieces affect the position
@@ -478,7 +585,7 @@ class Board:
 
         return (wvalue_king_safety, bvalue_king_safety)
 
-    def is_known_opening(self, fen_position):
+    def is_known_opening(self, fen_position: str):
         if fen_position in self.openings:
             return True
         return False

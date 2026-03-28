@@ -3,6 +3,9 @@ from board import Board
 from move import Move
 
 class Engine: 
+    board: Board
+    options_dict: set
+
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         openings = set()
         try:
@@ -76,7 +79,7 @@ class Engine:
                 print("bestmove 0000", flush=True)
                 return
 
-            depth = 2
+            depth = 3
             nodes = len(moves)
             time_ms = 15
             cp, pv = self.minimax(depth)
@@ -100,13 +103,13 @@ class Engine:
             #when user plays expected move, then engine should continue searching but switch from pondering to normal search
             pass
 
-    def format_info(self, list_of_tuples):
+    def format_info(self, info: list):
         full_info_str = "info "
-        for type, value in list_of_tuples:
+        for type, value in info:
             full_info_str += f"{type} {value} "
         print(full_info_str, flush=True)
     
-    def add_options(self, option_name, type, value):
+    def add_options(self, option_name: str, type: str, value):
         self.options_dict[option_name] = {"type": type, "value": value} #value would be a dict of default, min, max etc
         parts = []
         for k, v in value.items():

@@ -75,3 +75,19 @@ def test_king_safety():
     board = Board("r5nr/pp1b2k1/2pPp2p/4P1bQ/2P5/3B4/PP3PPP/R3K2R w KQ - 1 18")
     print(board.evaluate_king_safety())
     #assert board.evaluate_king_safety() is None
+    
+def test_evaluate_pawn_formation():
+    board = Board("1r1r2k1/p4pb1/2Bp1np1/q3p1Bp/4P3/2N2Q2/PP3PPP/1R1R2K1 b KQkq - 0 1")
+    assert board.evaluate_pawn_formation() == -250
+    
+def test_evaluate_bishops():
+    board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    assert board.evaluate_bishops() == 0
+    board = Board("rnbqk2r/ppp3pp/3p1p1n/4p3/1bB1P3/3P1P2/PPP3PP/RN1QK1NR b KQkq - 0 1")
+    assert board.evaluate_bishops() == -45
+    board = Board("rn1qk1nr/pp2p2p/7b/2ppNpp1/4PP2/8/PPPP2PP/RNBQKB1R w KQkq - 0 1")
+    assert board.evaluate_bishops() == 45
+    board = Board("rnbqkbnr/p3pppp/2p5/1p6/P1pP4/4P3/1P3PPP/RNBQKBNR b KQkq - 0 1")
+    assert board.evaluate_bishops() == 0
+    board = Board("1r1r2k1/p4pb1/2Bp1np1/q3p1Bp/4P3/2N2Q2/PP3PPP/1R1R2K1 b KQkq - 0 1")
+    assert board.evaluate_bishops() == 45

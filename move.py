@@ -1,12 +1,16 @@
 from piece import Piece
 
 class Move:
-    def __init__(self, from_r, from_c, to_r, to_c, promoted_to=None):
+    src_coords: tuple[int, int]
+    target_coords: tuple[int, int]
+    promoted_to: Piece | None
+    
+    def __init__(self, from_r: int, from_c: int, to_r: int, to_c: int, promoted_to: Piece | None = None):
         self.src_coords = (from_r, from_c)
         self.target_coords = (to_r, to_c)
         self.promoted_to = promoted_to
     
-    def __eq__(self, other):
+    def __eq__(self, other: Move):
         return (
             isinstance(other, Move) and
             self.src_coords == other.src_coords and

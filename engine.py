@@ -162,15 +162,13 @@ class Engine:
                                     wpass_pawn = False
                                     wpass_pawn_value =0
                                     break
-                                if (newwx == y) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
+                                if (newwx == x) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
                                     wpass_pawn = False
                                     wpass_pawn_value = -15
                                     wtotal_pawn_value +=wpass_pawn_value
                                     break
-                                if (newwy == y + abs(1)) and (newwx == x + abs(1)) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE: 
+                                if (newwy == y + abs(1)) and (newwx != x) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE: 
                                     wpass_pawn = True
-                                    wpass_pawn_value = 50
-                                    wtotal_pawn_value +=wpass_pawn_value
 
                             else:
                                 continue
@@ -195,15 +193,13 @@ class Engine:
                                     bpass_pawn = False 
                                     bpass_pawn_value = 0 
                                     break
-                                if (y == newy)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
+                                if (x == newx)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
                                     bpass_pawn = False
                                     bpass_pawn_value = -15 
                                     btotal_pawn_value +=bpass_pawn_value
                                     break
-                                if (newy == y + abs(1)) and (newx == x+ abs(1)) and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
+                                if (newy == y + abs(1)) and (newx != x) and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
                                     bpass_pawn = True
-                                    bpass_pawn_value = 50
-                                    btotal_pawn_value += bpass_pawn_value
                                     break
                             else:
                                 continue

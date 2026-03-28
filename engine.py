@@ -167,8 +167,6 @@ class Engine:
                                     wpass_pawn_value = -15
                                     wtotal_pawn_value +=wpass_pawn_value
                                     break
-                                if (newwy == y + abs(1)) and (newwx != x) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE: 
-                                    wpass_pawn = True
 
                             else:
                                 continue
@@ -197,9 +195,6 @@ class Engine:
                                     bpass_pawn = False
                                     bpass_pawn_value = -15 
                                     btotal_pawn_value +=bpass_pawn_value
-                                    break
-                                if (newy == y + abs(1)) and (newx != x) and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
-                                    bpass_pawn = True
                                     break
                             else:
                                 continue

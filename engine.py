@@ -293,13 +293,18 @@ class Engine:
         
         key = board.to_fen()
 
+        best_tt_move = None
         if key in self.transposition_table:
             stored_depth, stored_score, stored_pv = self.transposition_table[key]
 
             if stored_depth >= depth:
                 return stored_score, stored_pv[:depth]
+            if stored_pv:
+                best_tt_move = stored_pv[0]
         
         possible_moves = board.get_possible_moves()
+        if best_tt_move is not None:
+            possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
         if(board.turn == Color.WHITE):
             max_eval = float('-inf')
             best_pv = []

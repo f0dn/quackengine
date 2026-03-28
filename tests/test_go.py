@@ -21,7 +21,7 @@ def test_infinite(capsys):
 
     engine.handle_input("position startpos moves e2e4 e7e5")
     engine.handle_input("go infinite")
-    time.sleep(7)
+    time.sleep(2)
     engine.handle_input("stop")
 
     captured = capsys.readouterr()

@@ -152,7 +152,6 @@ class Engine:
                     wtotal_pawn_value +=wpawn_value 
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
-                            newwy = y + dy 
                             newwx = x = dx
                             if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
                                 wother_pawn = self.board.board[y+dy][x+dx] 
@@ -182,7 +181,6 @@ class Engine:
                     for dx in (-1,1):
                         for dy in (1, (7-y)):
                             newx = x + dx
-                            newy = y + dy 
                             if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
                                 bother_pawn = self.board.board[y+dy][x+dx]
                                 if bother_pawn is None: 

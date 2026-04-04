@@ -150,9 +150,9 @@ class Engine:
                     wpass_pawn_value = 0 
                     wpawn_value = (y/10)*piece[0].piece_value()
                     wtotal_pawn_value +=wpawn_value 
-                    for dx in (-1,1):
-                        for dy in (1, (7-y)):
-                            newwx = x = dx
+                    for dx in range(-1,1):
+                        for dy in range(1, (7-y)):
+                            newwx = x + dx
                             if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
                                 wother_pawn = self.board.board[y+dy][x+dx] 
                                 if wother_pawn is None: 
@@ -178,8 +178,8 @@ class Engine:
                     bpass_pawn_value = 0 
                     bpawn_value = ((7-y)/10)*piece[0].piece_value()
                     btotal_pawn_value +=bpawn_value 
-                    for dx in (-1,1):
-                        for dy in (1, (7-y)):
+                    for dx in range(-1,1):
+                        for dy in range(-1, -y-1, -1):
                             newx = x + dx
                             if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
                                 bother_pawn = self.board.board[y+dy][x+dx]

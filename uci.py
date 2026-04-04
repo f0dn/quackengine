@@ -1,4 +1,5 @@
 from typing import List, Optional, Self, Type
+from move import Move
 
 
 class Command():
@@ -8,7 +9,7 @@ class Command():
 
 
 class PositionCommand(Command):
-    def __init__(self, startpos: bool, fen: Optional[str], moves: List[str]):
+    def __init__(self, startpos: bool, fen: Optional[str], moves: List[Move]):
         self.startpos = startpos
         self.fen = fen
         self.moves = moves
@@ -20,7 +21,7 @@ class PositionCommand(Command):
 
         startpos = False
         fen = None
-        moves = []
+        moves: List[Move] = []
 
         if tokens[0] == "startpos":
             startpos = True
@@ -32,7 +33,7 @@ class PositionCommand(Command):
 
         if tokens and tokens[0] == "moves":
             tokens.pop(0)
-            moves = tokens
+            moves = [Move.from_long_algebraic(m) for m in tokens]
 
         return cls(startpos, fen, moves)
 
@@ -138,7 +139,7 @@ class UCINewGameCommand(Command):
     pass
 
 
-class OptionsCommand(Command):
+class SetOptionCommand(Command):
     def __init__(self, name: str, value: Optional[str] = None):
         self.name = name
         self.value = value
@@ -183,7 +184,7 @@ COMMAND_MAP: dict[str, Type[Command]] = {
     "stop": StopCommand,
     "quit": QuitCommand,
     "ucinewgame": UCINewGameCommand,
-    "setoption": OptionsCommand
+    "setoption": SetOptionCommand
 }
 
 

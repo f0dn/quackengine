@@ -2,7 +2,7 @@ from piece import Color
 from piece import Piece
 from board import Board
 from move import Move
-from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, OptionsCommand, UCINewGameCommand, StopCommand
+from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
 # import threading
 # import time
 
@@ -58,8 +58,7 @@ class Engine:
                 self.board = Board(cmd.fen)
 
             if cmd.moves:
-                moves = [Move.from_long_algebraic(m) for m in cmd.moves]
-                self.board.make_moves(moves)
+                self.board.make_moves(cmd.moves)
 
         elif isinstance(cmd, GoCommand):
             self.stop_requested = False
@@ -90,7 +89,7 @@ class Engine:
             self.stop_requested = True
             self.searching = False
 
-        elif isinstance(cmd, OptionsCommand):
+        elif isinstance(cmd, SetOptionCommand):
             self.options_dict[cmd.name] = cmd.value
 
         elif isinstance(cmd, QuitCommand):
@@ -240,10 +239,7 @@ class Engine:
             return True
         return False
 
-    def minimax(self, board, depth, alpha, beta):
-        if self.stop_requested:
-            return 0, []
-        
+    def minimax(self, board, depth, alpha, beta):        
         if depth == 0:
             return self.evaluate_position(), []
         possible_moves = board.get_possible_moves()

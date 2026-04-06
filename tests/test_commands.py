@@ -1,4 +1,3 @@
-from engine import Engine
 from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
 
 #testing uci parse_command()

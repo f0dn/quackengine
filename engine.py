@@ -1,18 +1,23 @@
 from piece import Color
 from piece import Piece
 from board import Board
-from move import Move
 from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
-# import threading
-# import time
+import threading
+import time
 
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
         self.board = Board(fen)
+
+        self.default_depth = 3
         self.searching = False
-        self.stop_requested = False
-        # self.search_thread = None
+        self.stop_event = threading.Event()
+        self.search_thread = None
+        self.best_move = None
+        self.best_pv = []
+
+        self.transposition_table = {}
         
         try:
             file = open('openings/2moves_v1.epd.txt')
@@ -50,6 +55,7 @@ class Engine:
 
         elif isinstance(cmd, UCINewGameCommand):
             self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            self.transposition_table.clear()
 
         elif isinstance(cmd, PositionCommand):
             if cmd.startpos:
@@ -61,43 +67,63 @@ class Engine:
                 self.board.make_moves(cmd.moves)
 
         elif isinstance(cmd, GoCommand):
-            self.stop_requested = False
-            self.searching = True
-
-            moves = self.board.get_possible_moves()
-
-            if not moves:
-                print("bestmove 0000", flush=True)
+            if self.searching:
                 return
 
             depth = cmd.depth if cmd.depth else 3
 
-            cp, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
-
-            if not pv:
-                print("bestmove 0000", flush=True)
-                return
-
-            pv_str = " ".join(move.to_long_algebraic() for move in pv)
-
-            print(f"info score cp {int(cp)} depth {depth} pv {pv_str}", flush=True)
-            print("bestmove " + pv[0].to_long_algebraic(), flush=True)
-
-            self.searching = False
+            self.stop_event.clear()
+            self.searching = True
+            self.best_move = None
+            self.best_pv = []
+            
+            self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
+            self.search_thread.start()
 
         elif isinstance(cmd, StopCommand):
-            self.stop_requested = True
-            self.searching = False
+            if self.searching:
+                self.stop_event.set()
+                self.search_thread.join()
+                self.search_thread = None
+
+                print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
 
         elif isinstance(cmd, SetOptionCommand):
             self.options_dict[cmd.name] = cmd.value
 
         elif isinstance(cmd, QuitCommand):
             exit()
+       
+    def search(self, max_depth=None):
+        start_time = time.time()
+        depth = 1
 
-    def calculate_best_move(self):
-        #just best move or also info?
-        pass
+        while not self.stop_event.is_set():            
+            if max_depth is not None and depth > max_depth:
+                break
+                
+            score, pv = self.minimax(self.board, depth, float('-inf'), float('inf'))
+
+            if self.stop_event.is_set():
+                break
+            
+            if not pv:
+                break
+            
+            self.best_move = pv[0]
+            self.best_pv = pv
+
+            elapsed = int((time.time() - start_time) * 1000)
+            pv_str = " ".join(move.to_long_algebraic() for move in pv)
+
+            print(f"info depth {depth} score cp {int(score)} time {elapsed} pv {pv_str}", flush=True)
+
+            depth += 1
+        
+        if not self.stop_event.is_set() and self.best_move:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
+        self.searching = False
 
     def format_info(self, list_of_tuples):
         full_info_str = "info "
@@ -239,10 +265,27 @@ class Engine:
             return True
         return False
 
-    def minimax(self, board, depth, alpha, beta):        
+    def minimax(self, board, depth, alpha, beta):
+        if self.stop_event.is_set():
+            return 0, []
+        
         if depth == 0:
             return self.evaluate_position(), []
+        
+        key = board.to_fen()
+
+        best_tt_move = None
+        if key in self.transposition_table:
+            stored_depth, stored_score, stored_pv = self.transposition_table[key]
+
+            if stored_depth >= depth:
+                return stored_score, stored_pv[:depth]
+            if stored_pv:
+                best_tt_move = stored_pv[0]
+        
         possible_moves = board.get_possible_moves()
+        if best_tt_move is not None:
+            possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
         if(board.turn == Color.WHITE):
             max_eval = float('-inf')
             best_pv = []
@@ -256,6 +299,7 @@ class Engine:
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
             min_eval = float('inf')
@@ -270,4 +314,5 @@ class Engine:
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, min_eval, best_pv)
             return min_eval, best_pv

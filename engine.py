@@ -1,7 +1,7 @@
 from piece import Color
 from piece import Piece
 from board import Board
-from move import Move
+from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
 import threading
 import time
 
@@ -35,84 +35,65 @@ class Engine:
             else:
                 self.handle_input(user_input)
 
-    def handle_input(self, command: str):
-        if(command == "uci"):
+    def handle_input(self, command_str: str):
+        cmd = parse_command(command_str)
+
+        if isinstance(cmd, UCICommand):
             print("id name quackengine", flush=True)
             print("id author project quack", flush=True)
-            #find out what options engine should support
-            #engine needs to tell the GUI which parameters can be changed in the engine, example below:
+
             self.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
             self.add_options("NalimovPath", "string", {"default": "<empty>"})
             self.add_options("NalimovCache", "spin", {"default": 1, "min": 1, "max": 32})
             self.add_options("Nullmove", "check", {"default": "true"})
             self.add_options("Style", "combo", {"default": "Normal", "var": ["Solid", "Normal", "Risky"]})
+
             print("uciok", flush=True)
-        elif(command == "isready"):
+
+        elif isinstance(cmd, IsReadyCommand):
             print("readyok", flush=True)
-            #can be sent if engine is calculating, and engine will continue searching after answering
-        elif("setoption" in command):
-            #should read what GUI set the option to, then engine sets up internal values
-            pass
-        elif(command == "ucinewgame"):
-            #when GUI tells engine that is is searching on a game that it hasn't searched on before
+
+        elif isinstance(cmd, UCINewGameCommand):
+            self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
             self.transposition_table.clear()
-        elif("debug" in command):
-            #engine should send additional infos to the GUI, off by default, can be sent anytime
-            pass
-        elif command.startswith("position"):
-            if ("startpos" in command):
+
+        elif isinstance(cmd, PositionCommand):
+            if cmd.startpos:
                 self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-                rest = command.split("startpos", 1)[1].strip()
-            else:
-                fen = command.split("fen", 1)[1].strip()
-                
-                if "moves" in fen:
-                    fen, rest = fen.split("moves", 1)
-                    fen = fen.strip()
-                    rest = rest.strip()
-                else:
-                    rest = ""
-                
-                self.board = Board(fen)
-            
-            if rest.startswith("moves"):
-                rest = rest[5:].strip()
-            
-            if rest:
-                moves = [Move.from_long_algebraic(move) for move in rest.split()]
-                self.board.make_moves(moves)
-        elif("go" in command):
+            elif cmd.fen:
+                self.board = Board(cmd.fen)
+
+            if cmd.moves:
+                self.board.make_moves(cmd.moves)
+
+        elif isinstance(cmd, GoCommand):
             if self.searching:
                 return
-            
-            max_depth = None
 
-            parts = command.split()
-            if ("depth" in parts):
-                max_depth = int(parts[parts.index("depth") + 1])
-            elif ("infinite" not in parts):
-                max_depth = self.default_depth
+            depth = cmd.depth if cmd.depth else 3
 
             self.stop_event.clear()
             self.searching = True
             self.best_move = None
             self.best_pv = []
             
-            self.search_thread = threading.Thread(target=self.search, args=(max_depth,), daemon=True)
+            self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
             self.search_thread.start()
-        elif(command == "stop"):
+
+        elif isinstance(cmd, StopCommand):
             if self.searching:
                 self.stop_event.set()
                 self.search_thread.join()
                 self.search_thread = None
 
                 print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
-        elif(command == "ponderhit"):
-            #ponder is when engine calculates opponent's next move during opponent's turn
-            #normal search is when engine calculates its own move during its own turn
-            #when user plays expected move, then engine should continue searching but switch from pondering to normal search
-            pass
 
+        elif isinstance(cmd, SetOptionCommand):
+            self.options_dict[cmd.name] = cmd.value
+
+        elif isinstance(cmd, QuitCommand):
+            exit()
+       
     def search(self, max_depth=None):
         start_time = time.time()
         depth = 1

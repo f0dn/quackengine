@@ -74,7 +74,7 @@ def test_king_safety():
     
 def test_evaluate_pawn_formation():
     engine = Engine("rnb1r3/pppk4/3p1p1p/3Pp3/2P5/2P3P1/PP3PBP/R4RK1 w KQkq - 0 1")
-    assert engine.evaluate_pawn_formation() == -470
+    assert engine.evaluate_pawn_formation() == 50
     
 def test_evaluate_bishops():
     engine = Engine("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")

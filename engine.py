@@ -150,7 +150,7 @@ class Engine:
                     wpass_pawn_value = 0 
                     wpawn_value = (y/10)*piece[0].piece_value()
                     wtotal_pawn_value +=wpawn_value 
-                    for dx in range(-1,1):
+                    for dx in range(-1,2):
                         for dy in range(1, (7-y)):
                             newwx = x + dx
                             if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
@@ -178,7 +178,8 @@ class Engine:
                     bpass_pawn_value = 0 
                     bpawn_value = ((7-y)/10)*piece[0].piece_value()
                     btotal_pawn_value +=bpawn_value 
-                    for dx in range(-1,1):
+                    bb = 0
+                    for dx in range(-1,2):
                         for dy in range(-1, -y-1, -1):
                             newx = x + dx
                             if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
@@ -192,6 +193,7 @@ class Engine:
                                 if (x == newx)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
                                     bpass_pawn = False
                                     bpass_pawn_value = -15 
+                                    bb += bpass_pawn_value
                                     btotal_pawn_value +=bpass_pawn_value
                                     break
                             else:
@@ -202,6 +204,9 @@ class Engine:
                         btotal_pawn_value +=bpass_pawn_value
                                 
         difference = wtotal_pawn_value - btotal_pawn_value 
+        print(btotal_pawn_value)
+        print(wtotal_pawn_value)
+        print(bb)
         return difference 
                             
     def evaluate_bishops(self):            

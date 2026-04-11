@@ -160,17 +160,23 @@ class Engine:
                                 if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
                                     wpass_pawn = False
                                     wpass_pawn_value =0
+                                    print(wpass_pawn)
                                     break
                                 if (newwx == x) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
-                                    wpass_pawn = False
-                                    wpass_pawn_value = -15
+                                    wpass_pawn_value = -30
                                     wtotal_pawn_value +=wpass_pawn_value
+                                    print(wtotal_pawn_value)
+                                    print(wpass_pawn)
+                                    print(newwx)
+                                    
+                                    print("white pawn", x,y)
                                     break
 
                             else:
                                 continue
                     
-                    if wpass_pawn:                    
+                    if wpass_pawn:  
+                        print(wpass_pawn)                  
                         wpass_pawn_value +=100  
                         wtotal_pawn_value += wpass_pawn_value              
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
@@ -189,24 +195,26 @@ class Engine:
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                     bpass_pawn = False 
                                     bpass_pawn_value = 0 
+                                    print(bpass_pawn)
                                     break
                                 if (x == newx)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
-                                    bpass_pawn = False
-                                    bpass_pawn_value = -15 
+                                    bpass_pawn_value = -30 
                                     bb += bpass_pawn_value
                                     btotal_pawn_value +=bpass_pawn_value
+                                    print(bb)
+                                    print(btotal_pawn_value)
+                                    pritn(newx)
+                                    print("black pawn", x, y)
                                     break
                             else:
                                 continue
                    
-                    if bpass_pawn:            
+                    if bpass_pawn:     
+                        print(bpass_pawn)       
                         bpass_pawn_value +=100
                         btotal_pawn_value +=bpass_pawn_value
                                 
         difference = wtotal_pawn_value - btotal_pawn_value 
-        print(btotal_pawn_value)
-        print(wtotal_pawn_value)
-        print(bb)
         return difference 
                             
     def evaluate_bishops(self):            

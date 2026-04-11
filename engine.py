@@ -188,7 +188,7 @@ class Engine:
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                     bpass_pawn = False 
                                     bpass_pawn_value = 0 
-                                    print(bpass_pawn)
+                                    
                                     break
                                 if (x == newx)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
                                     bpass_pawn_value = -30 
@@ -200,7 +200,7 @@ class Engine:
                                 continue
                    
                     if bpass_pawn:     
-                        print(bpass_pawn)       
+                            
                         bpass_pawn_value +=100
                         btotal_pawn_value +=bpass_pawn_value
                                 

@@ -1,6 +1,8 @@
 from piece import Color
 from board import Board
-from move import Move
+from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
+import threading
+import time
 
 class Engine: 
     board: Board
@@ -18,6 +20,23 @@ class Engine:
         self.options_dict = {}
         self.board = Board(fen, openings)
 
+        self.default_depth = 3
+        self.searching = False
+        self.stop_event = threading.Event()
+        self.search_thread = None
+        self.best_move = None
+        self.best_pv = []
+
+        self.transposition_table = {}
+        
+        try:
+            file = open('openings/2moves_v1.epd.txt')
+            self.openings = set()
+            for position in file:
+                self.openings.add(position)
+        except FileNotFoundError:
+            self.openings = set()
+
     def start(self):
         while True:
             user_input = input()
@@ -26,84 +45,97 @@ class Engine:
             else:
                 self.handle_input(user_input)
 
-    def handle_input(self, command: str):
-        if(command == "uci"):
+    def handle_input(self, command_str: str):
+        cmd = parse_command(command_str)
+
+        if isinstance(cmd, UCICommand):
             print("id name quackengine", flush=True)
             print("id author project quack", flush=True)
-            #find out what options engine should support
-            #engine needs to tell the GUI which parameters can be changed in the engine, example below:
+
             self.add_options("Hash", "spin", {"default": 1, "min": 1, "max": 128})
             self.add_options("NalimovPath", "string", {"default": "<empty>"})
             self.add_options("NalimovCache", "spin", {"default": 1, "min": 1, "max": 32})
             self.add_options("Nullmove", "check", {"default": "true"})
             self.add_options("Style", "combo", {"default": "Normal", "var": ["Solid", "Normal", "Risky"]})
-            print("uciok", flush=True)
-        elif(command == "isready"):
-            print("readyok", flush=True)
-            #can be sent if engine is calculating, and engine will continue searching after answering
-        elif("setoption" in command):
-            #should read what GUI set the option to, then engine sets up internal values
-            pass
-        elif(command == "ucinewgame"):
-            #when GUI tells engine that is is searching on a game that it hasn't searched on before
-            pass
-        elif("debug" in command):
-            #engine should send additional infos to the GUI, off by default, can be sent anytime
-            pass
-        elif command.startswith("position"):
-            if ("startpos" in command):
-                self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-                rest = command.split("startpos", 1)[1].strip()
-            else:
-                fen = command.split("fen", 1)[1].strip()
-                
-                if "moves" in fen:
-                    fen, rest = fen.split("moves", 1)
-                    fen = fen.strip()
-                    rest = rest.strip()
-                else:
-                    rest = ""
-                
-                self.board = Board(fen)
-            
-            if rest.startswith("moves"):
-                rest = rest[5:].strip()
-            
-            if rest:
-                moves = [Move.from_long_algebraic(move) for move in rest.split()]
-                self.board.make_moves(moves)
-        elif("go" in command):
-            moves = self.board.get_possible_moves()
 
-            if not moves:
-                print("bestmove 0000", flush=True)
+            print("uciok", flush=True)
+
+        elif isinstance(cmd, IsReadyCommand):
+            print("readyok", flush=True)
+
+        elif isinstance(cmd, UCINewGameCommand):
+            self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            self.transposition_table.clear()
+
+        elif isinstance(cmd, PositionCommand):
+            if cmd.startpos:
+                self.board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+            elif cmd.fen:
+                self.board = Board(cmd.fen)
+
+            if cmd.moves:
+                self.board.make_moves(cmd.moves)
+
+        elif isinstance(cmd, GoCommand):
+            if self.searching:
                 return
 
-            depth = 3
-            nodes = len(moves)
-            time_ms = 15
-            cp, pv = self.minimax(depth)
+            depth = cmd.depth if cmd.depth else 3
+
+            self.stop_event.clear()
+            self.searching = True
+            self.best_move = None
+            self.best_pv = []
+            
+            self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
+            self.search_thread.start()
+
+        elif isinstance(cmd, StopCommand):
+            if self.searching:
+                self.stop_event.set()
+                self.search_thread.join()
+                self.search_thread = None
+
+                print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
+        elif isinstance(cmd, SetOptionCommand):
+            self.options_dict[cmd.name] = cmd.value
+
+        elif isinstance(cmd, QuitCommand):
+            exit()
+       
+    def search(self, max_depth=None):
+        start_time = time.time()
+        depth = 1
+
+        while not self.stop_event.is_set():            
+            if max_depth is not None and depth > max_depth:
+                break
+                
+            score, pv = self.minimax(depth)
+
+            if self.stop_event.is_set():
+                break
+            
+            if not pv:
+                break
+            
+            self.best_move = pv[0]
+            self.best_pv = pv
+
+            elapsed = int((time.time() - start_time) * 1000)
             pv_str = " ".join(move.to_long_algebraic() for move in pv)
 
-            if cp == float('-inf'):
-                cp = -100000000
-            elif cp == float('inf'):
-                cp = 100000000
-            
-            print(f"info score cp {int(cp)} depth {depth} nodes {nodes} time {time_ms} pv {pv_str}", flush=True)
+            print(f"info depth {depth} score cp {int(score)} time {elapsed} pv {pv_str}", flush=True)
 
-            best_move = pv[0]
-            print("bestmove " + best_move.to_long_algebraic(),  flush=True)
+            depth += 1
+        
+        if not self.stop_event.is_set() and self.best_move:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
 
-        elif(command == "stop"):
-            pass
-        elif(command == "ponderhit"):
-            #ponder is when engine calculates opponent's next move during opponent's turn
-            #normal search is when engine calculates its own move during its own turn
-            #when user plays expected move, then engine should continue searching but switch from pondering to normal search
-            pass
+        self.searching = False
 
-    def format_info(self, info: list):
+    def format_info(self, list_of_tuples):
         full_info_str = "info "
         for type, value in info:
             full_info_str += f"{type} {value} "
@@ -133,12 +165,43 @@ class Engine:
                 self.board.make_moves([move])
                 eval, child_pv = self.minimax(depth-1, alpha, beta)
                 self.board = old_board
+
+    def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
+        if self.stop_event.is_set():
+            return 0, []
+        
+        if depth == 0:
+            return self.board.evaluate_position(), []
+        
+        key = self.board.to_fen()
+
+        best_tt_move = None
+        if key in self.transposition_table:
+            stored_depth, stored_score, stored_pv = self.transposition_table[key]
+
+            if stored_depth >= depth:
+                return stored_score, stored_pv[:depth]
+            if stored_pv:
+                best_tt_move = stored_pv[0]
+        
+        possible_moves = self.board.get_possible_moves()
+        if best_tt_move is not None:
+            possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
+        if(self.board.turn == Color.WHITE):
+            max_eval = float('-inf')
+            best_pv = []
+            for move in possible_moves:
+                old_board = self.board.copy_board()
+                self.board.make_moves([move])
+                eval, child_pv = self.minimax(depth-1, alpha, beta)
+                self.board = old_board
                 if eval > max_eval:
                     max_eval = eval
                     best_pv = [move] + child_pv
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
             min_eval = float('inf')
@@ -154,4 +217,5 @@ class Engine:
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
+            self.transposition_table[key] = (depth, min_eval, best_pv)
             return min_eval, best_pv

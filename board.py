@@ -365,6 +365,7 @@ class Board:
                         return True
         return False
         
+    
     def copy_board(self):
         other = Board(self.to_fen())
         return other

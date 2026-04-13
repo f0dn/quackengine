@@ -79,6 +79,16 @@ def test_king_safety():
 def test_evaluate_pawn_formation():
     board = Board("1r1r2k1/p4pb1/2Bp1np1/q3p1Bp/4P3/2N2Q2/PP3PPP/1R1R2K1 b KQkq - 0 1")
     assert board.evaluate_pawn_formation() == -250
+    board = Board("rnb1r3/pppk4/3p1p1p/3Pp3/2P5/2P3P1/PP3PBP/R4RK1 w KQkq - 0 1")
+    assert board.evaluate_pawn_formation() == 0
+    board = Board("3k4/5p2/8/4p3/P6P/1P5P/8/4K3 w - - 0 1")
+    assert board.evaluate_pawn_formation() == 200
+    board = Board("6k1/B5pp/3bpp2/8/Pp6/1P2PKP1/2r2P1P/R7 b KQkq - 0 1")
+    assert board.evaluate_pawn_formation() == 110
+    board = Board("6k1/B5pp/8/8/8/5K2/8/R7 b KQkq - 0 1")
+    assert board.evaluate_pawn_formation() == -220
+    board = Board("6k1/B5pp/8/8/8/5K2/2P5/R7 b KQkq - 0 1")
+    assert board.evaluate_pawn_formation() == -110
     
 def test_evaluate_bishops():
     board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")

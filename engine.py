@@ -135,7 +135,7 @@ class Engine:
 
         self.searching = False
 
-    def format_info(self, list_of_tuples):
+    def format_info(self, info: list):
         full_info_str = "info "
         for type, value in info:
             full_info_str += f"{type} {value} "
@@ -152,19 +152,6 @@ class Engine:
                 parts.append(f"{k} {v}")
         formatted_value = " ".join(parts)
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
-
-    def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
-        if depth == 0:
-            return self.board.evaluate_position(), []
-        possible_moves = self.board.get_possible_moves()
-        if(self.board.turn == Color.WHITE):
-            max_eval = float('-inf')
-            best_pv = []
-            for move in possible_moves:
-                old_board = self.board.copy_board()
-                self.board.make_moves([move])
-                eval, child_pv = self.minimax(depth-1, alpha, beta)
-                self.board = old_board
 
     def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
         if self.stop_event.is_set():

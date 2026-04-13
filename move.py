@@ -1,4 +1,5 @@
 from piece import Piece
+from typing import Self
 
 class Move:
     src_coords: tuple[int, int]
@@ -10,7 +11,7 @@ class Move:
         self.target_coords = (to_r, to_c)
         self.promoted_to = promoted_to
     
-    def __eq__(self, other: Move):
+    def __eq__(self, other: Self):
         return (
             isinstance(other, Move) and
             self.src_coords == other.src_coords and

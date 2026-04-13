@@ -419,8 +419,6 @@ class Board:
     def evaluate_pawn_formation(self):  
         wtotal_pawn_value = 0 
         btotal_pawn_value = 0 
-        wpass_pawn_value = 0 
-        bpass_pawn_value=0
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
                 piece = self.board[y][x]
@@ -431,9 +429,9 @@ class Board:
                     wpass_pawn_value = 0 
                     wpawn_value = (y/10)*piece[0].piece_value()
                     wtotal_pawn_value +=wpawn_value 
-                    wtotal_pawn_value +=wpass_pawn_value 
-                    for dx in (-1,1):
-                        for dy in (1, (7-y)):
+                    for dx in range(-1,2):
+                        for dy in range(1, (7-y)):
+                            newwx = x + dx
                             if (y +dy>= 0 and y+dy<=7) and (x+dx>=0 and x+dx<=7):
                                 wother_pawn = self.board[y+dy][x+dx] 
                                 if wother_pawn is None: 
@@ -441,44 +439,47 @@ class Board:
                                 if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.BLACK: 
                                     wpass_pawn = False
                                     wpass_pawn_value =0
-                                    wtotal_pawn_value += wpass_pawn_value
                                     break
-                                if wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
-                                    wpass_pawn = False
-                                    wpass_pawn_value -=30
+                                if (newwx == x) and wother_pawn[0] == Piece.PAWN and wother_pawn[1] == Color.WHITE:
+                                    wpass_pawn_value = -30
                                     wtotal_pawn_value +=wpass_pawn_value
                                     break
+
                             else:
                                 continue
                     
-                    if wpass_pawn:                    
-                        wpass_pawn_value +=100                
+                    if wpass_pawn:                  
+                        wpass_pawn_value +=100  
+                        wtotal_pawn_value += wpass_pawn_value              
                 if piece[0] == Piece.PAWN and piece[1] == Color.BLACK:  
                     bpass_pawn = True
                     bpass_pawn_value = 0 
                     bpawn_value = ((7-y)/10)*piece[0].piece_value()
                     btotal_pawn_value +=bpawn_value 
-                    for dx in (-1,1):
-                        for dy in (1, (7-y)):
+                    bb = 0
+                    for dx in range(-1,2):
+                        for dy in range(-1, -y-1, -1):
+                            newx = x + dx
                             if (y +dy >= 0 and y + dy<= 7) and (x+dx>=0 and x+dx <=7):
                                 bother_pawn = self.board[y+dy][x+dx]
                                 if bother_pawn is None: 
                                     continue
                                 if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.WHITE: 
                                     bpass_pawn = False 
-                                    bpass_pawn_value -=30
-                                    btotal_pawn_value += bpass_pawn_value
+                                    bpass_pawn_value = 0 
+                                    
                                     break
-
-                                if bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
-                                    bpass_pawn = False
-                                    bpass_pawn_value -= 30 
+                                if (x == newx)  and bother_pawn[0] == Piece.PAWN and bother_pawn[1] == Color.BLACK:
+                                    bpass_pawn_value = -30 
+                                    bb += bpass_pawn_value
                                     btotal_pawn_value +=bpass_pawn_value
+                                    
                                     break
                             else:
                                 continue
                    
-                    if bpass_pawn:            
+                    if bpass_pawn:     
+                            
                         bpass_pawn_value +=100
                         btotal_pawn_value +=bpass_pawn_value
                                 

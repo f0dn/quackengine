@@ -5,6 +5,8 @@ from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCo
 import threading
 import time
 
+from evaluate import Evaluate
+
 class Engine: 
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         self.options_dict = {}
@@ -267,11 +269,18 @@ class Engine:
 
     def minimax(self, board, depth, alpha, beta):
         if self.stop_event.is_set():
-            return 0, []
+            return Evaluate.normal(0), []
+        
+        possible_moves = board.get_possible_moves()
+        if not possible_moves:
+            if board.is_checkmate():
+                return Evaluate.mate_in(0), []
+            else:
+                return Evaluate.normal(0), []
         
         if depth == 0:
-            return self.evaluate_position(), []
-        
+            return Evaluate.normal(self.evaluate_position()), []
+           
         key = board.to_fen()
 
         best_tt_move = None
@@ -282,17 +291,17 @@ class Engine:
                 return stored_score, stored_pv[:depth]
             if stored_pv:
                 best_tt_move = stored_pv[0]
-        
-        possible_moves = board.get_possible_moves()
+         
         if best_tt_move is not None:
             possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
         if(board.turn == Color.WHITE):
-            max_eval = float('-inf')
+            max_eval = Evaluate.normal(float('-inf'))
             best_pv = []
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
                 eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                eval = eval.increment_mate()
                 if eval > max_eval:
                     max_eval = eval
                     best_pv = [move] + child_pv
@@ -302,12 +311,13 @@ class Engine:
             self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
-            min_eval = float('inf')
+            min_eval = Evaluate.normal(float('inf'))
             best_pv = []
             for move in possible_moves:
                 minimax_board = board.copy_board()
                 minimax_board.make_moves([move])
                 eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                eval = eval.increment_mate()
                 if eval < min_eval:
                     min_eval = eval
                     best_pv = [move] + child_pv

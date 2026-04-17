@@ -217,6 +217,12 @@ class Board:
                 legal_moves.add(move)
 
         return legal_moves
+    
+    def is_checkmate(self):
+        if len(self.get_possible_moves()) > 0:
+            return False
+        
+        return self.is_king_in_check(self.board, self.turn)
 
     def make_moves(self, moves: list[Move]):
         for move in moves:

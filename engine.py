@@ -24,6 +24,7 @@ class Engine:
         self.searching = False
         self.stop_event = threading.Event()
         self.search_thread = None
+        self.stop_thread = None
         self.best_move = None
         self.best_pv = []
 
@@ -80,7 +81,10 @@ class Engine:
             if self.searching:
                 return
 
-            depth = cmd.depth if cmd.depth else 3
+            if cmd.infinite:
+                depth = None
+            else:
+                depth = cmd.depth if cmd.depth is not None else 3
 
             self.stop_event.clear()
             self.searching = True
@@ -88,6 +92,12 @@ class Engine:
             self.best_pv = []
             
             self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
+            if cmd.wtime is not None and cmd.btime is not None:
+                if self.board.turn == Color.WHITE:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.wtime, cmd.winc), daemon=True)
+                else:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.btime, cmd.binc), daemon=True)
+                self.stop_thread.start()
             self.search_thread.start()
 
         elif isinstance(cmd, StopCommand):
@@ -111,8 +121,10 @@ class Engine:
         while not self.stop_event.is_set():            
             if max_depth is not None and depth > max_depth:
                 break
-                
+ 
             score, pv = self.minimax(depth)
+            if self.board.turn == Color.BLACK:
+                score = -1 * score
 
             if self.stop_event.is_set():
                 break
@@ -134,6 +146,16 @@ class Engine:
             print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
 
         self.searching = False
+
+    def stop(self, time_rem, time_inc):
+        if time_inc is not None:
+            time.sleep(time_rem * 0.001 + time_inc * 0.001)
+        else:
+            time.sleep(time_rem * 0.001)
+        self.stop_event.set()
+        self.searching = False
+        
+        print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
 
     def format_info(self, info: list):
         full_info_str = "info "

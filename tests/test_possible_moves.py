@@ -69,3 +69,55 @@ def test_king_moves():
     }
     assert possible_moves == expected_moves
 
+def test_castling_rights():
+    board = Board("8/8/8/8/8/8/8/R2QK2R w KQ - 0 1")
+
+    possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
+
+    expected_moves = {
+        "e1f1", "e1g1", "e1d2", "e1e2", "e1f2",
+        "h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", "h1g1", "h1f1",
+        "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1",
+        "d1d2", "d1d3", "d1d4", "d1d5", "d1d6", "d1d7", "d1d8", "d1c1", "d1b1", "d1c2", "d1b3", "d1a4", "d1e2", "d1f3", "d1g4", "d1h5"
+    }
+
+    assert possible_moves == expected_moves
+
+    board = Board("6r1/8/8/8/8/8/8/R2QK2R w KQ - 0 1")
+
+    possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
+
+    # obstruction -> illegal castling move
+    expected_moves = {
+        "e1f1", "e1d2", "e1e2", "e1f2",
+        "h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", "h1g1", "h1f1",
+        "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1",
+        "d1d2", "d1d3", "d1d4", "d1d5", "d1d6", "d1d7", "d1d8", "d1c1", "d1b1", "d1c2", "d1b3", "d1a4", "d1e2", "d1f3", "d1g4", "d1h5"
+    }
+
+    assert possible_moves == expected_moves
+
+    board = Board("6r1/8/8/8/8/8/8/R2QK3 w Q - 0 1")
+
+    possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
+
+    # no King castling rights
+    expected_moves = {
+        "e1f1", "e1d2", "e1e2", "e1f2",
+        "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1",
+        "d1d2", "d1d3", "d1d4", "d1d5", "d1d6", "d1d7", "d1d8", "d1c1", "d1b1", "d1c2", "d1b3", "d1a4", "d1e2", "d1f3", "d1g4", "d1h5"
+    }
+
+    assert possible_moves == expected_moves
+
+def test_en_passant():
+    board = Board("4k3/8/8/8/1pP5/8/PP6/4K3 b - c3 0 1")
+
+    possible_moves = {m.to_long_algebraic() for m in board.get_possible_moves()}
+
+    expected_moves = {
+        "b4b3", "b4c3",
+        "e8e7", "e8d7", "e8f7", "e8d8", "e8f8"
+    }
+
+    assert possible_moves == expected_moves

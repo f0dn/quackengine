@@ -192,6 +192,33 @@ class Board:
                     add_step_moves(r, c, knight_dirs, self.turn)
                 elif piece == Piece.KING:
                     add_step_moves(r, c, king_dirs, self.turn)
+
+                    if not self.is_king_in_check(self.board, self.turn):
+                        rights = self.castling_avail[self.turn]
+
+                        # kingside moves
+                        if Piece.KING in rights:
+                            
+                            if ((board[r][5] is None) and (board[r][6] is None)): # no pieces in between
+                                # validity checks
+                                pass_thru_test = self.copy_board()
+                                pass_thru_test.make_moves([Move(c, r, 5, r)])
+                                end_test = self.copy_board()
+                                end_test.make_moves([Move(c, r, 6, r)])
+
+                                if ((not pass_thru_test.is_king_in_check(pass_thru_test.board, self.turn)) and (not end_test.is_king_in_check(end_test.board, self.turn))):
+                                    possible_moves.append(Move(c, r, 6, r))
+
+                        # queenside moves
+                        if Piece.QUEEN in rights:
+                            if ((board[r][1] is None) and (board[r][2] is None) and (board[r][3] is None)):
+                                pass_thru_test = self.copy_board()
+                                pass_thru_test.make_moves([Move(c, r, 3, r)])
+                                end_test = self.copy_board()
+                                end_test.make_moves([Move(c, r, 2, r)])
+
+                                if ((not pass_thru_test.is_king_in_check(pass_thru_test.board, self.turn)) and (not end_test.is_king_in_check(end_test.board, self.turn))):
+                                    possible_moves.append(Move(c, r, 2, r))
                 elif piece == Piece.PAWN:
                     # Pawn direction depends on color
                     if self.turn == Color.WHITE:
@@ -207,10 +234,18 @@ class Board:
                     # Pawn captures (diagonal)
                     for dc in [-1, 1]:
                         nr, nc = r + forward, c + dc
-                        if on_board(nr, nc):
-                            target = board[nr][nc]
-                            if is_opponent(target, self.turn):
+                        if not on_board(nr, nc):
+                            continue
+
+                        target = board[nr][nc]
+                        if is_opponent(target, self.turn):
+                            if nr == end_row: # a promotion is available
+                                for piece in piece_list:
+                                    possible_moves.append(Move(c, r, nc, nr, piece))
+                            else:
                                 possible_moves.append(Move(c, r, nc, nr))
+                        if self.recent_en_passant_target == (nc, nr):
+                            possible_moves.append(Move(c, r, nc, nr))
                     
                     # Pawn forward move (one square)
                     nr = r + forward

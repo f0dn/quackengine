@@ -84,7 +84,7 @@ class Engine:
             if cmd.infinite:
                 depth = None
             else:
-                depth = cmd.depth if cmd.depth is not None else 3
+                depth = cmd.depth if cmd.depth is not None else None
 
             self.stop_event.clear()
             self.searching = True
@@ -149,13 +149,21 @@ class Engine:
 
     def stop(self, time_rem, time_inc):
         if time_inc is not None:
-            time.sleep(time_rem * 0.001 + time_inc * 0.001)
+            wait = time_rem * 0.001 * 0.05 + time_inc * 0.001
         else:
-            time.sleep(time_rem * 0.001)
+            wait = time_rem * 0.001 * 0.05
+        time.sleep(wait)
         self.stop_event.set()
         self.searching = False
-        
-        print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
+        if self.best_move is not None:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+        else:
+            score, pv = self.minimax(1)
+            self.best_move = pv[0]
+            
+            print(f"info depth {1} score cp {int(score)} time {wait} pv {self.best_move.to_long_algebraic()}", flush=True)
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
 
     def format_info(self, info: list):
         full_info_str = "info "
@@ -176,9 +184,9 @@ class Engine:
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
     def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
-        if self.stop_event.is_set():
+        if self.stop_event.is_set() and depth > 1:
             return 0, []
-        
+
         if depth == 0:
             return self.board.evaluate_position(), []
         

@@ -117,8 +117,8 @@ class Engine:
 
             elapsed = int((time.time() - start_time) * 1000)
             pv_str = " ".join(move.to_long_algebraic() for move in pv)
-
-            print(f"info depth {depth} score cp {score} time {elapsed} pv {pv_str}", flush=True)
+            score_val = score.mate if score.is_mate() else int(score.score)
+            print(f"info depth {depth} score cp {score_val} time {elapsed} pv {pv_str}", flush=True)
 
             depth += 1
         

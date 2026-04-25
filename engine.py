@@ -4,6 +4,8 @@ from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCo
 import threading
 import time
 
+from evaluate import Evaluation
+
 class Engine: 
     board: Board
     options_dict: set
@@ -121,10 +123,8 @@ class Engine:
         while not self.stop_event.is_set():            
             if max_depth is not None and depth > max_depth:
                 break
- 
-            score, pv = self.minimax(depth)
-            if self.board.turn == Color.BLACK:
-                score = -1 * score
+                
+            score, pv = self.minimax(depth, Evaluation.normal(float('-inf')), Evaluation.normal(float('inf')))
 
             if self.stop_event.is_set():
                 break
@@ -137,8 +137,7 @@ class Engine:
 
             elapsed = int((time.time() - start_time) * 1000)
             pv_str = " ".join(move.to_long_algebraic() for move in pv)
-
-            print(f"info depth {depth} score cp {int(score)} time {elapsed} pv {pv_str}", flush=True)
+            print(f"info depth {depth} score {score} time {elapsed} pv {pv_str}", flush=True)
 
             depth += 1
         
@@ -185,10 +184,17 @@ class Engine:
 
     def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
         if self.stop_event.is_set() and depth > 1:
-            return 0, []
-
+            return Evaluation.normal(0), []
+          
+        possible_moves = self.board.get_possible_moves()
+        if len(possible_moves) == 0:
+            if self.board.is_checkmate():
+                return Evaluation.mate_in(0, Color.BLACK if self.board.turn == Color.WHITE else Color.WHITE), []
+            else:
+                return Evaluation.normal(0), []
+              
         if depth == 0:
-            return self.board.evaluate_position(), []
+            return Evaluation.normal(self.board.evaluate_position()), []
         
         key = self.board.to_fen()
 
@@ -201,16 +207,16 @@ class Engine:
             if stored_pv:
                 best_tt_move = stored_pv[0]
         
-        possible_moves = self.board.get_possible_moves()
         if best_tt_move is not None:
             possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
         if(self.board.turn == Color.WHITE):
-            max_eval = float('-inf')
+            max_eval = Evaluation.normal(float('-inf'))
             best_pv = []
             for move in possible_moves:
                 old_board = self.board.copy_board()
                 self.board.make_moves([move])
                 eval, child_pv = self.minimax(depth-1, alpha, beta)
+                eval = eval.increment_mate()
                 self.board = old_board
                 if eval > max_eval:
                     max_eval = eval
@@ -221,12 +227,13 @@ class Engine:
             self.transposition_table[key] = (depth, max_eval, best_pv)
             return max_eval, best_pv
         else:
-            min_eval = float('inf')
+            min_eval = Evaluation.normal(float('inf'))
             best_pv = []
             for move in possible_moves:
                 old_board = self.board.copy_board()
                 self.board.make_moves([move])
                 eval, child_pv = self.minimax(depth-1, alpha, beta)
+                eval = eval.increment_mate()
                 self.board = old_board
                 if eval < min_eval:
                     min_eval = eval

@@ -1,5 +1,4 @@
 from piece import Color
-from piece import Piece
 from board import Board
 from uci import parse_command, PositionCommand, GoCommand, UCICommand, IsReadyCommand, QuitCommand, SetOptionCommand, UCINewGameCommand, StopCommand
 import threading
@@ -8,14 +7,26 @@ import time
 from evaluate import Evaluation
 
 class Engine: 
+    board: Board
+    options_dict: set
+
     def __init__(self, fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+        openings = set()
+        try:
+            file = open('openings/2moves_v1.epd.txt')
+            for position in file:
+                openings.add(position)
+        except FileNotFoundError:
+            pass
+
         self.options_dict = {}
-        self.board = Board(fen)
+        self.board = Board(fen, openings)
 
         self.default_depth = 3
         self.searching = False
         self.stop_event = threading.Event()
         self.search_thread = None
+        self.stop_thread = None
         self.best_move = None
         self.best_pv = []
 
@@ -72,7 +83,10 @@ class Engine:
             if self.searching:
                 return
 
-            depth = cmd.depth if cmd.depth else 3
+            if cmd.infinite:
+                depth = None
+            else:
+                depth = cmd.depth if cmd.depth is not None else None
 
             self.stop_event.clear()
             self.searching = True
@@ -80,6 +94,12 @@ class Engine:
             self.best_pv = []
             
             self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
+            if cmd.wtime is not None and cmd.btime is not None:
+                if self.board.turn == Color.WHITE:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.wtime, cmd.winc), daemon=True)
+                else:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.btime, cmd.binc), daemon=True)
+                self.stop_thread.start()
             self.search_thread.start()
 
         elif isinstance(cmd, StopCommand):
@@ -104,7 +124,7 @@ class Engine:
             if max_depth is not None and depth > max_depth:
                 break
                 
-            score, pv = self.minimax(self.board, depth, Evaluation.normal(float('-inf')), Evaluation.normal(float('inf')))
+            score, pv = self.minimax(depth, Evaluation.normal(float('-inf')), Evaluation.normal(float('inf')))
 
             if self.stop_event.is_set():
                 break
@@ -126,13 +146,31 @@ class Engine:
 
         self.searching = False
 
-    def format_info(self, list_of_tuples):
+    def stop(self, time_rem, time_inc):
+        if time_inc is not None:
+            wait = time_rem * 0.001 * 0.05 + time_inc * 0.001
+        else:
+            wait = time_rem * 0.001 * 0.05
+        time.sleep(wait)
+        self.stop_event.set()
+        self.searching = False
+
+        if self.best_move is not None:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+        else:
+            score, pv = self.minimax(1)
+            self.best_move = pv[0]
+            
+            print(f"info depth {1} score cp {int(score)} time {wait} pv {self.best_move.to_long_algebraic()}", flush=True)
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
+    def format_info(self, info: list):
         full_info_str = "info "
-        for type, value in list_of_tuples:
+        for type, value in info:
             full_info_str += f"{type} {value} "
         print(full_info_str, flush=True)
     
-    def add_options(self, option_name, type, value):
+    def add_options(self, option_name: str, type: str, value):
         self.options_dict[option_name] = {"type": type, "value": value} #value would be a dict of default, min, max etc
         parts = []
         for k, v in value.items():
@@ -144,143 +182,21 @@ class Engine:
         formatted_value = " ".join(parts)
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
-    def evaluate_position(self):
-        if self.is_known_opening(self.board.to_fen()) and self.board.turn == Color.WHITE:
-            return float('inf')
-        elif self.is_known_opening(self.board.to_fen()) and self.board.turn == Color.BLACK:
-            return float('-inf')
-        whitepieces = []
-        blackpieces = []
-        whitepositions = []
-        blackpositions = []
-        self.white_moves = []
-        self.black_moves = []
-
-        for rowindex, row in enumerate(self.board.board):
-            for columnindex, piece in enumerate(row): 
-                if piece is None:
-                    continue
-                elif piece[1] == Color.WHITE:
-                    whitepieces.append(piece)
-                    whitepositions.append((rowindex, columnindex))
-                elif piece[1] == Color.BLACK:
-                    blackpieces.append(piece)
-                    blackpositions.append((rowindex, columnindex))
-                else:
-                    pass
-        total_blackpieces = 0
-        total_whitepieces = 0
-        for index, piece in enumerate(blackpieces):
-            total_blackpieces += piece[0].piece_value()
-            total_blackpieces += (piece[0].piece_table())[blackpositions[index][0]][blackpositions[index][1]]
-        for index, piece in enumerate(whitepieces):
-            total_whitepieces += piece[0].piece_value()
-            total_whitepieces += (piece[0].piece_table())[7-whitepositions[index][0]][whitepositions[index][1]]
-        
-        king_safety = self.evaluate_king_safety()
-        total_whitepieces = total_whitepieces + king_safety[0]
-        total_blackpieces = total_blackpieces + king_safety[1]
-
-        capture_threats = self.evaluate_capture_threats()
-        total_whitepieces = total_whitepieces + capture_threats[0]
-        total_blackpieces = total_blackpieces + capture_threats[1]
-
-        difference = total_whitepieces - total_blackpieces
-        return difference
-
-    def evaluate_capture_threats(self):
-        #Calculate how threats on the pieces affect the position
-        #threatsow and threatsob contain all captures (for future implementation and testing)
-        threatsob = []
-        threatsow = []
-        moves = self.board.get_possible_moves()
-        #move.src_coords and move.target_coords to it's for where it's coming for and wwhere going to. can index into boards
-        # for self.board[move.src_coords[1][move.src_coords[0]]] == Color.White:
-        bvalue_after_threats = 0 
-        wvalue_after_threats = 0 
-        for columnindex, row in enumerate(self.board.board): 
-            for rowindex, piece in enumerate(row): 
-                if piece is None:
-                    continue
-                elif (self.board.turn == Color.BLACK) and (piece[1] == Color.WHITE):
-                    for move in moves: 
-                        if move.target_coords == (rowindex, columnindex): 
-                            threatsow.append(move)
-                            wvalue_after_threats -= 0.1 * piece[0].piece_value()     
-                elif (self.board.turn == Color.WHITE) and (piece[1] == Color.BLACK):
-                    for move in moves: 
-                        if move.target_coords == (rowindex, columnindex): 
-                            threatsob.append(move)
-                            bvalue_after_threats -= 0.1 * piece[0].piece_value()
-        return (wvalue_after_threats, bvalue_after_threats)
-    
-    def evaluate_king_safety(self):
-        #i need to find what kind of pieces surround the king
-        #threatsowk and threatsobk contain all moves restricting king movement (for testing and future implementation)
-        threatsobk = []
-        threatsowk = []
-        bvalue_king_safety = 0 
-        wvalue_king_safety = 0 
-        moves = self.board.get_possible_moves()
-
-        #Next section calculates the extent to which the king is under threat
-        threat_king_color = Color.WHITE
-        if self.board.turn == Color.WHITE:
-            threat_king_color = Color.BLACK
-        else:
-            threat_king_color = Color.WHITE
-        kmoves = []
-        xposking = 0
-        yposking = 0
-        for y1 in range(len(self.board.board)):
-            for x1 in range(len(self.board.board[y1])):
-                if self.board.board[y1][x1] is None:
-                    continue
-                elif (self.board.board[y1][x1][1] == threat_king_color) and (self.board.board[y1][x1][0] == Piece.KING):
-                    xposking = x1
-                    yposking = y1
-        for dx1 in (-1, 0, 1):
-            for dy1 in (-1, 0, 1):
-                if dx1 == 0 and dy1 == 0:
-                    continue
-                else:
-                    newx1 = xposking + dx1
-                    newy1 = yposking + dy1
-                    if (0 <= newx1 < 8) and (0 <= newy1 < 8):
-                        km = (newx1, newy1)
-                        kmoves.append(km)
-        for move in moves: 
-            for km in kmoves:
-                if move.target_coords == km:
-                    if threat_king_color == Color.BLACK:
-                        threatsobk.append(move)
-                        bvalue_king_safety -= 0.1 * (self.board.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
-                    else:
-                        threatsowk.append(move)
-                        wvalue_king_safety -= 0.1 * (self.board.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
-
-        return (wvalue_king_safety, bvalue_king_safety)
-
-    def is_known_opening(self, fen_position):
-        if fen_position in self.openings:
-            return True
-        return False
-
-    def minimax(self, board, depth, alpha, beta):
-        if self.stop_event.is_set():
+    def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
+        if self.stop_event.is_set() and depth > 1:
             return Evaluation.normal(0), []
-        
+          
         possible_moves = board.get_possible_moves()
         if len(possible_moves) == 0:
             if board.is_checkmate():
                 return Evaluation.mate_in(0, Color.BLACK if board.turn == Color.WHITE else Color.WHITE), []
             else:
                 return Evaluation.normal(0), []
-        
+              
         if depth == 0:
             return Evaluation.normal(self.evaluate_position()), []
-           
-        key = board.to_fen()
+        
+        key = self.board.to_fen()
 
         best_tt_move = None
         if key in self.transposition_table:
@@ -290,17 +206,18 @@ class Engine:
                 return stored_score, stored_pv[:depth]
             if stored_pv:
                 best_tt_move = stored_pv[0]
-         
+        
         if best_tt_move is not None:
             possible_moves = [best_tt_move] + [move for move in possible_moves if move != best_tt_move]
-        if(board.turn == Color.WHITE):
+        if(self.board.turn == Color.WHITE):
             max_eval = Evaluation.normal(float('-inf'))
             best_pv = []
             for move in possible_moves:
-                minimax_board = board.copy_board()
-                minimax_board.make_moves([move])
-                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                old_board = self.board.copy_board()
+                self.board.make_moves([move])
+                eval, child_pv = self.minimax(depth-1, alpha, beta)
                 eval = eval.increment_mate()
+                self.board = old_board
                 if eval > max_eval:
                     max_eval = eval
                     best_pv = [move] + child_pv
@@ -313,10 +230,11 @@ class Engine:
             min_eval = Evaluation.normal(float('inf'))
             best_pv = []
             for move in possible_moves:
-                minimax_board = board.copy_board()
-                minimax_board.make_moves([move])
-                eval, child_pv = self.minimax(minimax_board, depth - 1, alpha, beta)
+                old_board = self.board.copy_board()
+                self.board.make_moves([move])
+                eval, child_pv = self.minimax(depth-1, alpha, beta)
                 eval = eval.increment_mate()
+                self.board = old_board
                 if eval < min_eval:
                     min_eval = eval
                     best_pv = [move] + child_pv

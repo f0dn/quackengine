@@ -26,6 +26,11 @@ class Evaluation:
             else:
                 return Evaluation(mate=self.mate - 1)
         return self
+    
+    def __repr__(self):
+        if self.is_mate():
+            return f"mate {self.mate}"
+        return f"cp {int(self.score)}"
 
     def __lt__(self, other):
         if not isinstance(other, Evaluation):

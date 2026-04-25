@@ -186,10 +186,10 @@ class Engine:
         if self.stop_event.is_set() and depth > 1:
             return Evaluation.normal(0), []
           
-        possible_moves = board.get_possible_moves()
+        possible_moves = self.board.get_possible_moves()
         if len(possible_moves) == 0:
-            if board.is_checkmate():
-                return Evaluation.mate_in(0, Color.BLACK if board.turn == Color.WHITE else Color.WHITE), []
+            if self.board.is_checkmate():
+                return Evaluation.mate_in(0, Color.BLACK if self.board.turn == Color.WHITE else Color.WHITE), []
             else:
                 return Evaluation.normal(0), []
               

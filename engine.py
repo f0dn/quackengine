@@ -194,7 +194,7 @@ class Engine:
                 return Evaluation.normal(0), []
               
         if depth == 0:
-            return Evaluation.normal(self.evaluate_position()), []
+            return Evaluation.normal(self.board.evaluate_position()), []
         
         key = self.board.to_fen()
 

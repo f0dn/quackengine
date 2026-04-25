@@ -24,6 +24,7 @@ class Engine:
         self.searching = False
         self.stop_event = threading.Event()
         self.search_thread = None
+        self.stop_thread = None
         self.best_move = None
         self.best_pv = []
 
@@ -80,7 +81,10 @@ class Engine:
             if self.searching:
                 return
 
-            depth = cmd.depth if cmd.depth else 3
+            if cmd.infinite:
+                depth = None
+            else:
+                depth = cmd.depth if cmd.depth is not None else None
 
             self.stop_event.clear()
             self.searching = True
@@ -88,6 +92,12 @@ class Engine:
             self.best_pv = []
             
             self.search_thread = threading.Thread(target=self.search, args=(depth,), daemon=True)
+            if cmd.wtime is not None and cmd.btime is not None:
+                if self.board.turn == Color.WHITE:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.wtime, cmd.winc), daemon=True)
+                else:
+                    self.stop_thread = threading.Thread(target=self.stop, args=(cmd.btime, cmd.binc), daemon=True)
+                self.stop_thread.start()
             self.search_thread.start()
 
         elif isinstance(cmd, StopCommand):
@@ -111,8 +121,10 @@ class Engine:
         while not self.stop_event.is_set():            
             if max_depth is not None and depth > max_depth:
                 break
-                
+ 
             score, pv = self.minimax(depth)
+            if self.board.turn == Color.BLACK:
+                score = -1 * score
 
             if self.stop_event.is_set():
                 break
@@ -135,6 +147,24 @@ class Engine:
 
         self.searching = False
 
+    def stop(self, time_rem, time_inc):
+        if time_inc is not None:
+            wait = time_rem * 0.001 * 0.05 + time_inc * 0.001
+        else:
+            wait = time_rem * 0.001 * 0.05
+        time.sleep(wait)
+        self.stop_event.set()
+        self.searching = False
+
+        if self.best_move is not None:
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+        else:
+            score, pv = self.minimax(1)
+            self.best_move = pv[0]
+            
+            print(f"info depth {1} score cp {int(score)} time {wait} pv {self.best_move.to_long_algebraic()}", flush=True)
+            print("bestmove " + self.best_move.to_long_algebraic(), flush=True)
+
     def format_info(self, info: list):
         full_info_str = "info "
         for type, value in info:
@@ -154,9 +184,9 @@ class Engine:
         print(f"option name {option_name} type {type} {formatted_value}", flush=True)
 
     def minimax(self, depth: int, alpha: int = float('-inf'), beta: int = float('inf')):
-        if self.stop_event.is_set():
+        if self.stop_event.is_set() and depth > 1:
             return 0, []
-        
+
         if depth == 0:
             return self.board.evaluate_position(), []
         

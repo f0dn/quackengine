@@ -615,10 +615,10 @@ class Board:
                 if move.target_coords == km:
                     if threat_king_color == Color.BLACK:
                         threatsobk.append(move)
-                        bvalue_king_safety -= 0.1 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
+                        bvalue_king_safety -= 0.1 + 0.01 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
                     else:
                         threatsowk.append(move)
-                        wvalue_king_safety -= 0.1 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
+                        wvalue_king_safety -= 0.1 + 0.01 * (self.board[move.src_coords[1]][move.src_coords[0]])[0].piece_value()
 
         return (wvalue_king_safety, bvalue_king_safety)
 
